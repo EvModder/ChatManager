@@ -1,4 +1,4 @@
-package Evil_Code_ChatManager;
+package EvCode.ChatManager;
 
 import java.io.*;
 import java.net.MalformedURLException;
