@@ -1,0 +1,45 @@
+name: ChatManager
+main: Evil_Code_ChatManager.ChatManager
+Author: EvModder
+version: 1.4.7.2
+    
+commands:
+   evcm:
+      description: Commands for EvChatManager.
+      usage: Do [/evcm help] for chat commands
+      aliases: [chat,chatm,chatmanager,chat-manager,cm,evchatmanager]
+      permission: evp.evcm
+      permission-message: You do not have permission for this command.
+     
+permissions:
+   evp.evcm:
+        description: Allows access to the /chat command
+        default: op
+        
+   evp.evcm.reload:
+        description: Reload all configuration settings.
+        default: op
+        
+   evp.evcm.togglespam:
+        description: Toggle spam-blocking on/off.
+        default: op
+        
+   evp.evcm.togglefilth:
+        description: Toggle chat-filter on/off.
+        default: op
+        
+   evp.evcm.togglecolor:
+        description: Toggle color usage ability on/off.
+        default: false
+        
+   evp.evcm.toggleformat:
+        description: Toggle format usage ability on/off.
+        default: false
+        
+   evp.evcm.chatcolor:
+        description: Allows players to use colors.
+        default: op
+        
+   evp.evcm.chatformat:
+        description: Allows players to use formats.
+        default: op

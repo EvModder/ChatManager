@@ -1,0 +1,26 @@
+//Various uses of a-word
+badass,halfass, ass , a s s , as s , a$$ , a@@ , a .. , a $ $, a @ @, a @@ , a $$ ,
+ a** ,asshole,a@@hole, a..hole ,a$$hole,azzhole,a s s h o l e, as shole , a sshole ,
+pASS,rASS ,uASS ,tASS ,yASS ,eASS ,kASS ,tASS , ashole , azhole, azz ,
+
+//Various uses of f-word
+fucker,fucking,fucked,fuck you,fuck,f u c k,fu ck,f uc k,f uck,fuc k,fuuu,
+, fk,fuc ,fuk ,wtf ,stfu,omfg,fml,f**,f--k, f it , f you, f-ing , f-er ,
+, f-you, f that ,fck, fker , omf , f off , fuc , fuc-ing, fuc-er,f-k ,f**k,
+, f-ck ,f-cker,f-cking, f*ck ,fvck,fwck, f~ck , f ing , f-er ,lmfao,
+, f them , f you,gtfo,fking, f u ,dafuq,dafuc,dafuk,dafvk, fuk,
+
+//name-calling & cursing
+,idiot , id iot , idi ot ,i d i o t,faggot,fagg,fag ,bitch,btch,whore,cunt,kunt,
+,retarded,retard,returd ,
+,kike,nigger, wop ,jap , spic ,siht ,shiz ,
+,holyshit,holy shit,bullshit,shitty,shity,shit,s h i t, shi t,sht ,sh-t, sh it ,
+,damn ,d a m n,d amn ,da mn,dam n ,
+, tit , ti t , t i t ,
+,buttcrap,bullcrap",
+# crap,c r a p,cr ap,cra p, butt ,
+,big dick ,dick ,d i c k, di ck, dic k, d ick ,
+,penis ,p e n i s, pe nis , p enis , peni s , sex , anus ,
+
+//Words that are unatractive in CAPS
+, POO ,POOP,POOPY, PEE , FART,PEEPEE,BUTTCRAP, BUTT ,URINE,HELL
