@@ -14,7 +14,10 @@ import java.util.Set;
 public class FileIO {
 	public static void loadDefaultBlockedList(ChatManager plugin, Set<String> wordList, Map<String, String> subList){
 		BufferedReader reader = null;
-		reader = new BufferedReader(new InputStreamReader(plugin.getClass().getResourceAsStream("/defaultblocked.txt")));
+		reader = new BufferedReader(
+				new InputStreamReader(
+				plugin.getClass()
+				.getResourceAsStream("/defaultblocked.txt")));
 		
 		if(reader != null){
 			StringBuilder builder = new StringBuilder();

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.Command;
@@ -23,7 +24,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -35,8 +35,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	
 	/** Anti-Spam configuration **/
-	private String spamResultCmd = "/kick %name% Received TMC/TMS from client--\\n (Either lag or spam... :P)";
-	private int maxChatsPerMinute = 30, maxChatsPer10s = 10, maxChatsPerSecond = 2;
+	private String spamResultCmd = "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P";
+	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 2;
 	private Map<UUID, List<Integer>> lastChats;
 	
 	
@@ -67,6 +67,10 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		FileIO.loadCustomBlockedList(this, badWords, subList);
 //		badWords = (String[]) wordList.toArray();
 		
+		/** Runs every 1 second to update recored chats and clear chats with old timestamps **/
+		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){public void run(){updateLastChats();}}, 100, 20);
+		
+		/** Register listener events with the server **/
 		getServer().getPluginManager().registerEvents(this, this);
 	}
 	
@@ -167,11 +171,18 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				chat = defaultSub;
 				getLogger().info("De-Punc. Chat: "+newChat);
 			}
-			else{
+			else if(newChat.length() > 0){
 				newChat = utils.combineRepeatedChars(newChat);
 				if(hasBadWords(newChat)){
 					chat = defaultSub;
 					getLogger().info("Abv. Chat: "+newChat);
+				}
+				else{
+					newChat = utils.removeLowerCaseAndPunc(newChat);
+					if(hasBadWords(newChat)){
+						chat = defaultSub;
+						getLogger().info("Uppercase-Only Chat: "+newChat);
+					}
 				}
 			}
 			
@@ -183,41 +194,49 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		//-------------------------------------------------------------------------|
 		
 		if(antiSpam){
-			lastChats.get(event.getPlayer().getUniqueId()).add(0);
+			try{
+				lastChats.get(event.getPlayer().getUniqueId()).add(0);
+			}
+			catch(NullPointerException ex){
+				lastChats.put(event.getPlayer().getUniqueId(), new ArrayList<Integer>());
+				lastChats.get(event.getPlayer().getUniqueId()).add(0);
+			}
 			
-			// Chat timestamps are thrown out after 1 minute
+			// Chat timestamps are thrown out every minute or so
 			int inLastSecond=0, inLast10s=0, inLastMinute=0;
 			for(int timeElapsed : lastChats.get(event.getPlayer().getUniqueId())){
-				inLastMinute++;
 				
-				if(timeElapsed <= 10){
-					inLast10s++;
-					if(timeElapsed <= 1) inLastSecond++;
+				if(timeElapsed <= 60){
+					inLastMinute++;
+					if(timeElapsed <= 10){
+						inLast10s++;
+						if(timeElapsed <= 1) inLastSecond++;
+					}
 				}
 			}
 			if(inLastSecond > maxChatsPerSecond || inLast10s > maxChatsPer10s || inLastMinute > maxChatsPerMinute){
 				event.getPlayer().sendMessage(pluginPrefix + "Please slow down chat a little.");
 				
 				//If they continue to spam after the warning..
-				if(inLastSecond+2 > maxChatsPerSecond || inLast10s+3 > maxChatsPer10s || inLastMinute+5 > maxChatsPerMinute){
-					getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd);
-//					final String name = pName;
-//					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){@Override public void run(){
-//						getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd.replace("%name%", name));
-//					}});
+				if(inLastSecond > maxChatsPerSecond+2 || inLast10s > maxChatsPer10s+3 || inLastMinute > maxChatsPerMinute+5){
+//					getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd);
+					final String name = pName;
+					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){@Override public void run(){
+						getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd.replace("%name%", name));
+					}});
 				}
 			}
 			
 			
 			//Keep players from repeating messages --------------------------------------------------------------
-			int chatLength = chat.length();
+			int chatLength = chat.replace(defaultSub, "").length();
 			String noPuncChat = utils.removePunctuation(chat);
 			if(noPuncChat.length() > 4 || noPuncChat.equals(noPuncChat.toUpperCase())){
 				
 			}
 			//---------------------------------------------------------------------------------------------------
 			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
-			if(chatLength > 6 && chatLength*.55 > chatLength-noPuncChat.length()){
+			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChat.length())){
 				chat = noPuncChat;
 				event.getPlayer().sendMessage(pluginPrefix+"§cSpam Detect. Perhaps try with less punctuation.");
 			}
@@ -248,7 +267,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
-		if(event.getMessage().equalsIgnoreCase(chat) == false){
+		if(event.getMessage().equals(chat) == false){
 			event.setMessage(chat);
 			getLogger().info("Original Chat: "+pName+": "+event.getMessage());
 		}
@@ -256,14 +275,18 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void preCommand(PlayerCommandPreprocessEvent evt){
-		if(evt.getMessage().contains(" ") && antiCmdFilth){
+		if(evt.getMessage().contains(" ") && antiCmdFilth && evt.isCancelled() == false){
 			String[] args = evt.getMessage().split(" ");
 			String chat = " ";
-			for(int i = 1; i < args.length; i++) chat+=args[i] + " ";
+			for(int i = 1; i < args.length; i++)chat+=args[i]+' ';
 			
 			if(hasBadWords(chat)) evt.setCancelled(true);
-			else if(hasBadWords(utils.convertFrom1337(utils.removePunctuation(chat)))) evt.setCancelled(true);
-			else return;
+			else{
+				chat = utils.convertFrom1337(utils.removePunctuation(chat));
+				if(hasBadWords(chat)) evt.setCancelled(true);
+				else if(hasBadWords(utils.combineRepeatedChars(chat))) evt.setCancelled(true);
+				else return;
+			}
 			evt.getPlayer().sendMessage("§7Really now?");
 		}
 	}
@@ -284,15 +307,28 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		return false;
 	}
-	
-	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent evt){
-		lastChats.put(evt.getPlayer().getUniqueId(), new ArrayList<Integer>());
-	}
-	
+		
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent evt){
 		lastChats.remove(evt.getPlayer().getUniqueId());
+	}
+	
+	private void updateLastChats(){
+		for(UUID uuid : lastChats.keySet()){
+			List<Integer> chats = lastChats.get(uuid);
+//			chats.forEach(new Consumer<Integer>(){
+//				@Override public void accept(Integer chat){chat++;}
+//			});
+			for(int i = 0; i < chats.size(); i++) chats.set(i, chats.get(i)+1);
+			
+			chats.removeIf(new Predicate<Integer>(){
+				@Override
+				public boolean test(Integer timeStamp) {
+					return timeStamp > 60;
+				}
+			});
+			lastChats.put(uuid, chats);
+		}
 	}
 	
 	private void loadConfig(){

@@ -2,9 +2,14 @@ package EvCode.ChatManager;
 
 public class Utils {
 	
-	/** Strip punctuation **/
+	/** Strip punctuation, NOTE: Does not remove spaces **/
 	public String removePunctuation(String oldChat){
-		return oldChat.replaceAll("[^a-zA-Z0-9]", "");
+		return oldChat.replaceAll("[^a-zA-Z0-9\\s]", "");
+	}
+	
+	/** Strip all lowercase characters and punctuation **/
+	public String removeLowerCaseAndPunc(String oldChat){
+		return oldChat.replaceAll("[^A-Z\\s]", "");
 	}
 	
 	/** leet converter **/
@@ -12,15 +17,15 @@ public class Utils {
 		char[] chars = oldChat.toCharArray();
 		
 		StringBuilder builder = new StringBuilder();
-		builder.append(chars[0]);
-		for(int i = 1; i < chars.length; i++){
+		for(int i = 0; i < chars.length; i++){
 			if(chars[i] == '1')builder.append('i');
-			else if(chars[i] == '3')builder.append('e');
-			else if(chars[i] == '4')builder.append('a');
-			else if(chars[i] == '5')builder.append('s');
-			else if(chars[i] == '6')builder.append('g');
-			else if(chars[i] == '7')builder.append('t');
-			else if(chars[i] == '0')builder.append('o');
+			else if(chars[i] == '3')builder.append('E');
+			else if(chars[i] == '4')builder.append('A');
+			else if(chars[i] == '5')builder.append('S');
+			else if(chars[i] == '6')builder.append('G');
+			else if(chars[i] == '7')builder.append('T');
+			else if(chars[i] == '0')builder.append('O');
+			else builder.append(chars[i]);
 		}
 		return builder.toString();
 	}

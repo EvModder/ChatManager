@@ -1,12 +1,12 @@
 name: ChatManager
-main: Evil_Code_ChatManager.ChatManager
+main: EvCode.ChatManager.ChatManager
 Author: EvModder
-version: 1.4.7.2
+version: 1.5.1
     
 commands:
    evcm:
       description: Commands for EvChatManager.
-      usage: Do [/evcm help] for chat commands
+      usage: Do /evcm help for chat commands
       aliases: [chat,chatm,chatmanager,chat-manager,cm,evchatmanager]
       permission: evp.evcm
       permission-message: You do not have permission for this command.
