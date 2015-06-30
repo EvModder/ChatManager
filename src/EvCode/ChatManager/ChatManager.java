@@ -22,6 +22,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -30,7 +31,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
 	boolean antiSpam = true, antiFilth = true, antiCmdFilth, color = true, format = true, removeCaps = true, fixGrammer = false;
-	boolean ignoreAmperstand = true;
+	boolean ignoreAmperstand = true, antiSignFilth = true;
 //	final String nickPrefix = "˜";
 	private String pluginPrefix = "§3<§aC§3>§f ";
 	
@@ -51,7 +52,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
-	final int AVAILABLE_SETTINGS = 10;
+	final int AVAILABLE_SETTINGS = 11;
 	
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
@@ -164,12 +165,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		//-------------------------------------------------------------------------|
 		if(antiFilth && !event.getPlayer().hasPermission("evp.evcm.chatfilter.exempt")){
-			for(String badword : badWords){
-				if(chat.contains(badword))chat = chat
-						.replace(badword.trim(),
-								(subList.containsKey(badword)) ? subList.get(badword) :
-								((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
-			}
+			chat = filterOutBadWords(chat);
 			
 			String newChat = utils.convertFrom1337(chat);
 			newChat = utils.removePunctuation(newChat);
@@ -300,6 +296,32 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 	}
 	
+	@EventHandler
+	public void signPlaceEvent(SignChangeEvent evt){
+		StringBuilder builder = new StringBuilder(' ');
+		builder.append(evt.getLine(0)); builder.append(" \n ");
+		builder.append(evt.getLine(1)); builder.append(" \n ");
+		builder.append(evt.getLine(2)); builder.append(" \n ");
+		builder.append(evt.getLine(3)); builder.append(' ');
+		
+		String signText = builder.toString();
+		String filteredText = filterOutBadWords(signText);
+		
+		if(signText.equals(filteredText) == false){
+			String[] signLines = filteredText.replace(" \n", "\n").replace("\n ", "\n").split("\n");
+			for(int i = 0; i < 4; i++) evt.setLine(i, signLines[i]);
+		}
+		
+		if(hasBadWords(filteredText)) evt.setCancelled(true);
+		else{
+			filteredText = utils.convertFrom1337(utils.removePunctuation(filteredText));
+			if(hasBadWords(filteredText)) evt.setCancelled(true);
+			else if(hasBadWords(utils.combineRepeatedChars(filteredText))) evt.setCancelled(true);
+			else return;
+		}
+		evt.getPlayer().sendMessage(pluginPrefix+"§7Really now?");
+	}
+	
 	public boolean hasBadWords(String chat){
 		chat = chat.toLowerCase();
 //		for(int i = 0; i < badWords.length; i++){
@@ -316,7 +338,17 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		return false;
 	}
-		
+	
+	public String filterOutBadWords(String chat){
+		for(String badword : badWords){
+			if(chat.contains(badword))chat = chat
+					.replace(badword.trim(),
+							(subList.containsKey(badword)) ? subList.get(badword) :
+							((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
+		}
+		return chat;
+	}
+	
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent evt){
 		lastChats.remove(evt.getPlayer().getUniqueId());
@@ -405,6 +437,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 					 "\n  Default Replacement: " + defaultSub +
 					 "\n\nSanitize Chat: " + String.valueOf(antiFilth) +
 					 "\nSanitize Commands: " + String.valueOf(antiCmdFilth) +
+					 "\nSanitize Sign Text: "+ String.valueOf(antiSignFilth) +
 					 "\n\nChat Colors: " + String.valueOf(color) +
 					 "\nChat Formats: " + String.valueOf(format) +
 					 "\nFix Grammer: " + String.valueOf(fixGrammer));
