@@ -30,6 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
 	boolean antiSpam = true, antiFilth = true, antiCmdFilth, color = true, format = true, removeCaps = true, fixGrammer = false;
+	boolean ignoreAmperstand = true;
 //	final String nickPrefix = "˜";
 	private String pluginPrefix = "§3<§aC§3>§f ";
 	
@@ -45,10 +46,12 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	private Map<String, String> subList;
 	private String defaultSub = "[-]";
 	Utils utils = new Utils();
+	private boolean blockBlockWords;
+	private Set<String> blockedBlockWords;
 	
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
-	final int AVAILABLE_SETTINGS = 9;
+	final int AVAILABLE_SETTINGS = 10;
 	
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
@@ -61,10 +64,12 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		lastChats = new HashMap<UUID, List<Integer>>();
 		badWords = new HashSet<String>();
 		subList = new HashMap<String, String>();
+		blockedBlockWords = new HashSet<String>();
 		
 		/** Load word lists **/
 		FileIO.loadDefaultBlockedList(this, badWords, subList);
 		FileIO.loadCustomBlockedList(this, badWords, subList);
+		FileIO.loadBlockedBlockList(this, blockedBlockWords);
 //		badWords = (String[]) wordList.toArray();
 		
 		/** Runs every 1 second to update recored chats and clear chats with old timestamps **/
@@ -72,6 +77,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		/** Register listener events with the server **/
 		getServer().getPluginManager().registerEvents(this, this);
+		if(blockBlockWords) new BlockWordDetector(this, blockedBlockWords);
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String args[]){
@@ -157,7 +163,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		String pName = event.getPlayer().getName();
 		
 		//-------------------------------------------------------------------------|
-		if(antiFilth){
+		if(antiFilth && !event.getPlayer().hasPermission("evp.evcm.chatfilter.exempt")){
 			for(String badword : badWords){
 				if(chat.contains(badword))chat = chat
 						.replace(badword.trim(),
@@ -165,8 +171,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 								((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
 			}
 			
-			String newChat = utils.removePunctuation(chat);
-			newChat = utils.convertFrom1337(newChat);
+			String newChat = utils.convertFrom1337(chat);
+			newChat = utils.removePunctuation(newChat);
 			if(hasBadWords(newChat)){
 				chat = defaultSub;
 				getLogger().info("De-Punc. Chat: "+newChat);
@@ -193,7 +199,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		//-------------------------------------------------------------------------|
 		
-		if(antiSpam){
+		if(antiSpam && !event.getPlayer().hasPermission("evp.evcm.spamfilter.exempt")){
 			try{
 				lastChats.get(event.getPlayer().getUniqueId()).add(0);
 			}
@@ -229,7 +235,9 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			
 			
 			//Keep players from repeating messages --------------------------------------------------------------
-			int chatLength = chat.replace(defaultSub, "").length();
+			int chatLength =
+				ignoreAmperstand ? chat.replace("&", "").replace(defaultSub, "").length() : chat.replace(defaultSub, "").length();
+					
 			String noPuncChat = utils.removePunctuation(chat);
 			if(noPuncChat.length() > 4 || noPuncChat.equals(noPuncChat.toUpperCase())){
 				
@@ -248,7 +256,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			}
 		}
 		if(fixGrammer){
-			chat = chat.replace(" i ", " I ").replace(" u ", "you").replace("youre", "you're").replace("dont", "don't");
+			chat = chat.replace(" i ", " I ").replace(" u ", " you ").replace("youre", "you're").replace("dont", "don't")
+					.replace(" teh ", " the ").replace(" I c ", " I see ");
 			//add spellcheck and grammer check and all the rest of the mess, available online somewhere
 		}
 		
@@ -268,8 +277,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
 		if(event.getMessage().equals(chat) == false){
-			event.setMessage(chat);
 			getLogger().info("Original Chat: "+pName+": "+event.getMessage());
+			event.setMessage(chat);
 		}
 	}
 	
@@ -390,7 +399,9 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		try{
 			conf.createNewFile();
 			BufferedWriter writer = new BufferedWriter(new FileWriter(conf));
-			writer.write("Block Spam: " + String.valueOf(antiSpam) +
+			writer.write(
+					 "Block Spam: " + String.valueOf(antiSpam) +
+					 "\nIgnore '&' as Punctuation: " + ignoreAmperstand +
 					 "\n  Default Replacement: " + defaultSub +
 					 "\n\nSanitize Chat: " + String.valueOf(antiFilth) +
 					 "\nSanitize Commands: " + String.valueOf(antiCmdFilth) +

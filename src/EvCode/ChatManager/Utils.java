@@ -20,11 +20,12 @@ public class Utils {
 		for(int i = 0; i < chars.length; i++){
 			if(chars[i] == '1')builder.append('i');
 			else if(chars[i] == '3')builder.append('E');
-			else if(chars[i] == '4')builder.append('A');
+			else if(chars[i] == '4' || chars[i] == '@')builder.append('A');
 			else if(chars[i] == '5')builder.append('S');
 			else if(chars[i] == '6')builder.append('G');
 			else if(chars[i] == '7')builder.append('T');
 			else if(chars[i] == '0')builder.append('O');
+			else if(chars[i] == '#')builder.append('H');
 			else builder.append(chars[i]);
 		}
 		return builder.toString();

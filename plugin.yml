@@ -1,7 +1,7 @@
 name: ChatManager
 main: EvCode.ChatManager.ChatManager
 Author: EvModder
-version: 1.5.1
+version: 1.5.3
     
 commands:
    evcm:
@@ -43,3 +43,11 @@ permissions:
    evp.evcm.chatformat:
         description: Allows players to use formats.
         default: op
+        
+   evp.evcm.spamfilter.exempt:
+        description: Chats from this player will not be monitored by the spam-filter
+        default: op
+        
+   evp.evcm.chatfilter.exempt:
+        description: Chats from this player will not be monitored by the chat-filter
+        default: false

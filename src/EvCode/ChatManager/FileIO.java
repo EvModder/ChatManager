@@ -53,7 +53,7 @@ public class FileIO {
 			try{
 				//eww hardcoded text..
 				BufferedWriter writer = new BufferedWriter(new FileWriter(blockedList));
-				writer.write("" +"thisisabadword,badword248,a@@ , word45 ,CRAPS**T,lolbutts,LMFAO=haha" +
+				writer.write("thisisabadword,badword248,a@@ , word45 ,CRAPS**T,lolbutts,LMFAO=haha" +
 					   "\n\n# Spaces are fine to use, but please realize that " +
 						 "\n# they will be counted as a part of a word." +
 					  "\n#\n# To set a custom replacement (sub) for a bad word, simply use" +
@@ -89,6 +89,42 @@ public class FileIO {
 					wordList.add(word.split("=")[0]);
 					if(word.contains("=")) subList.put(word.split("=")[0], word.split("=")[1]);
 				}
+			}
+		}
+	}
+	
+	public static void loadBlockedBlockList(ChatManager plugin, Set<String> wordList){
+		
+		BufferedReader reader = null;
+		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked block-words list.txt"));}
+		catch(FileNotFoundException e){
+			//Create the file
+			File blockedList = new File("./plugins/EvFolder/blocked block-words list.txt");
+			try{
+				//eww hardcoded text..
+				BufferedWriter writer = new BufferedWriter(new FileWriter(blockedList));
+				writer.write("#Put words in here that should be detected and removed when built in block form");
+				writer.flush();
+				writer.close();
+			}
+			catch(IOException e1){plugin.getLogger().info(e1.getStackTrace().toString());}
+			//Attempt again to load the file
+			try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked block-words list.txt"));}
+			catch(FileNotFoundException e2){plugin.getLogger().info(e2.getStackTrace().toString());reader = null;}
+		}
+		if(reader != null){
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			try{
+				while((line = reader.readLine()) != null){
+					line = line.replace(" ", "").replace("//", "");
+					if(!line.startsWith("#")) builder.append(line);
+				}reader.close();
+			}
+			catch(IOException e){plugin.getLogger().info(e.getMessage());}
+			
+			for(String word : builder.toString().split(",")){
+				if(word.length() > 1) wordList.add(word);
 			}
 		}
 	}
