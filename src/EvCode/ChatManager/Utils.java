@@ -4,12 +4,20 @@ public class Utils {
 	
 	/** Strip punctuation, NOTE: Does not remove spaces **/
 	public String removePunctuation(String oldChat){
-		return oldChat.replaceAll("[^a-zA-Z0-9\\s]", "");
+		return oldChat.replaceAll("[^a-zA-Z\\s]", "");
 	}
 	
 	/** Strip all lowercase characters and punctuation **/
 	public String removeLowerCaseAndPunc(String oldChat){
 		return oldChat.replaceAll("[^A-Z\\s]", "");
+	}
+	
+	public String reverse(String oldChat){
+		char[] chars = oldChat.toCharArray();
+		
+		StringBuilder builder = new StringBuilder();
+		for(int i = chars.length-1; i >= 0; i--) builder.append(chars[i]);
+		return builder.toString();
 	}
 	
 	/** leet converter **/

@@ -30,10 +30,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
-	boolean antiSpam = true, antiFilth = true, antiCmdFilth, color = true, format = true, removeCaps = true, fixGrammer = false;
-	boolean ignoreAmperstand = true, antiSignFilth = true;
-//	final String nickPrefix = "˜";
+	boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, color = true, format = true, removeCaps = true, fixGrammer = false;
+	boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = true, blockBlockWords = false;
 	private String pluginPrefix = "§3<§aC§3>§f ";
+//	final String nickPrefix = "˜";
 	
 	
 	/** Anti-Spam configuration **/
@@ -44,15 +44,15 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	/** Anti-Filth configuration **/
 	private Set<String> badWords;
+	private Set<String> blockedBlockWords;
+	
 	private Map<String, String> subList;
 	private String defaultSub = "[-]";
 	Utils utils = new Utils();
-	private boolean blockBlockWords;
-	private Set<String> blockedBlockWords;
 	
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
-	final int AVAILABLE_SETTINGS = 11;
+	final int AVAILABLE_SETTINGS = 12;
 	
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
@@ -65,12 +65,26 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		lastChats = new HashMap<UUID, List<Integer>>();
 		badWords = new HashSet<String>();
 		subList = new HashMap<String, String>();
-		blockedBlockWords = new HashSet<String>();
 		
 		/** Load word lists **/
 		FileIO.loadDefaultBlockedList(this, badWords, subList);
 		FileIO.loadCustomBlockedList(this, badWords, subList);
-		FileIO.loadBlockedBlockList(this, blockedBlockWords);
+		
+		if(blockBlockWords){
+			FileIO.loadBlockedBlockList(this, (blockedBlockWords = new HashSet<String>()));
+			new BlockWordDetector(this, blockedBlockWords);
+		}
+		
+		if(checkWordsBackwards){
+			String newBadWord;
+			for(String badword : badWords){
+				if(!badword.trim().contains(" ") && badword.equals(utils.removePunctuation(badword))){
+					newBadWord = utils.reverse(badword);
+					badWords.add(newBadWord);
+					if(subList.containsKey(badword)) subList.put(newBadWord, subList.get(badword));
+				}
+			}
+		}
 //		badWords = (String[]) wordList.toArray();
 		
 		/** Runs every 1 second to update recored chats and clear chats with old timestamps **/
@@ -78,7 +92,6 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		/** Register listener events with the server **/
 		getServer().getPluginManager().registerEvents(this, this);
-		if(blockBlockWords) new BlockWordDetector(this, blockedBlockWords);
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String args[]){
@@ -98,12 +111,12 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			}//-----------------------------------------------------------------------------------------------------------
 			else if(args[0].contains("filth") && sender.hasPermission("evp.evcm.togglefilth")){
 				if(args.length >= 2){
-					if(args[1].equalsIgnoreCase("on")) antiFilth = true;
-					else antiFilth = false;
+					if(args[1].equalsIgnoreCase("on")) antiChatFilth = true;
+					else antiChatFilth = false;
 				}
 				else{
-					antiFilth = !antiFilth;
-					if(antiFilth) sender.sendMessage("FilthGuard Enabled.");
+					antiChatFilth = !antiChatFilth;
+					if(antiChatFilth) sender.sendMessage("FilthGuard Enabled.");
 					else sender.sendMessage("FilthGuard Disabled.");
 				}
 			}//-----------------------------------------------------------------------------------------------------------
@@ -164,26 +177,36 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		String pName = event.getPlayer().getName();
 		
 		//-------------------------------------------------------------------------|
-		if(antiFilth && !event.getPlayer().hasPermission("evp.evcm.chatfilter.exempt")){
+		if(antiChatFilth && !event.getPlayer().hasPermission("evp.evcm.chatfilter.exempt")){
 			chat = filterOutBadWords(chat);
 			
-			String newChat = utils.convertFrom1337(chat);
-			newChat = utils.removePunctuation(newChat);
+			String newChat = utils.removePunctuation(chat);
 			if(hasBadWords(newChat)){
-				chat = defaultSub;
+				chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
 				getLogger().info("De-Punc. Chat: "+newChat);
 			}
-			else if(newChat.length() > 0){
-				newChat = utils.combineRepeatedChars(newChat);
+			else{
+				newChat = utils.combineRepeatedChars(utils.removeLowerCaseAndPunc(newChat));
 				if(hasBadWords(newChat)){
-					chat = defaultSub;
-					getLogger().info("Abv. Chat: "+newChat);
+					chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
+					getLogger().info("Uppercase-Only Chat: "+newChat);
 				}
 				else{
-					newChat = utils.removeLowerCaseAndPunc(newChat);
-					if(hasBadWords(newChat)){
-						chat = defaultSub;
-						getLogger().info("Uppercase-Only Chat: "+newChat);
+					newChat = utils.removePunctuation(utils.convertFrom1337(chat));
+					
+					if(newChat.length() > 0){
+						newChat = utils.combineRepeatedChars(newChat);
+						if(hasBadWords(newChat)){
+							chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
+							getLogger().info("Abv. Chat: "+newChat);
+						}
+						else{
+							newChat = utils.removeLowerCaseAndPunc(newChat);
+							if(hasBadWords(newChat)){
+								chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
+								getLogger().info("Uppercase-Only Chat: "+newChat);
+							}
+						}
 					}
 				}
 			}
@@ -298,6 +321,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void signPlaceEvent(SignChangeEvent evt){
+		if(!antiSignFilth || evt.isCancelled()) return;
+		
 		StringBuilder builder = new StringBuilder(' ');
 		builder.append(evt.getLine(0)); builder.append(" \n ");
 		builder.append(evt.getLine(1)); builder.append(" \n ");
@@ -394,24 +419,42 @@ public final class ChatManager extends JavaPlugin implements Listener{
 					line = line.toLowerCase();
 					String tag = line.split(":")[0].replace(" ", ""); String value = line.split(":")[1].trim();
 					
-					if(tag.equals("blockspam"))
+					if(tag.equals("blockspam")){//1
 						antiSpam = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					else if(tag.equals("sanitizechat"))
-						antiFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					else if(tag.equals("sanitizecommands"))
-						antiCmdFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					else if(tag.equals("chatcolors"))
-						color = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					else if(tag.equals("chatformats"))
-						format = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					else if(tag.equals("fixgrammer"))
-						fixGrammer = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					else if(tag.equals("spamresult")){
+					}
+					else if(tag.contains("ignore'&'")){//2
+						ignoreAmperstand = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.equals("spamresult")){//3
 						spamResultCmd = value;
 						if(!spamResultCmd.startsWith("/")) spamResultCmd = '/'+spamResultCmd;
 					}
-					else if(tag.contains("replace")){
+					else if(tag.equals("sanitizechat")){//4
+						antiChatFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.equals("sanitizecommands")){//5
+						antiCmdFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.equals("sanitizesign")){//6
+						antiSignFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.contains("badwordsbuilt")){//7
+						blockBlockWords = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.contains("backwards")){//8
+						checkWordsBackwards = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.contains("replacement")){//9
 						defaultSub = value;
+					}
+					else if(tag.equals("chatcolors")){//10
+						color = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.equals("chatformats")){//11
+						format = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
+					else if(tag.equals("fixgrammer")){//12
+						fixGrammer = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 					}
 					else continue;
 					settings++;
@@ -432,15 +475,21 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			conf.createNewFile();
 			BufferedWriter writer = new BufferedWriter(new FileWriter(conf));
 			writer.write(
-					 "Block Spam: " + String.valueOf(antiSpam) +
-					 "\nIgnore '&' as Punctuation: " + ignoreAmperstand +
-					 "\n  Default Replacement: " + defaultSub +
-					 "\n\nSanitize Chat: " + String.valueOf(antiFilth) +
-					 "\nSanitize Commands: " + String.valueOf(antiCmdFilth) +
-					 "\nSanitize Sign Text: "+ String.valueOf(antiSignFilth) +
-					 "\n\nChat Colors: " + String.valueOf(color) +
-					 "\nChat Formats: " + String.valueOf(format) +
-					 "\nFix Grammer: " + String.valueOf(fixGrammer));
+					 "Block Spam: " + String.valueOf(antiSpam) +//1
+					 "\nIgnore '&' as Punctuation: " + ignoreAmperstand +//2
+					 "\nSpam Result Console Command: " + spamResultCmd +//3
+					 
+					 "\n\nSanitize Chat: " + String.valueOf(antiChatFilth) +//4
+					 "\nSanitize Commands: " + String.valueOf(antiCmdFilth) +//5
+					 "\nSanitize Sign Text: "+ String.valueOf(antiSignFilth) +//6
+					 "\nAttempt to detect bad words built out of blocks: " + String.valueOf(blockBlockWords) +//7
+					 "\nCheck words backwards in antiFilth: " + checkWordsBackwards +//8
+					 "\nDefault Badword Replacement: " + defaultSub +//9
+					 
+					 "\n\nChat Colors: " + String.valueOf(color) +//10
+					 "\nChat Formats: " + String.valueOf(format) +//11
+					 
+					 "\n\nFix Grammer: " + String.valueOf(fixGrammer));//12
 			writer.close();
 		}
 		catch(IOException e1){getLogger().info(e1.getStackTrace().toString());}
