@@ -31,7 +31,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
 	boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, color = true, format = true, removeCaps = true, fixGrammer = false;
-	boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = true, blockBlockWords = false;
+	boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = true, blockBlockWords = false, autoUpdate = true;
 	private String pluginPrefix = "§3<§aC§3>§f ";
 //	final String nickPrefix = "˜";
 	
@@ -52,11 +52,11 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
-	final int AVAILABLE_SETTINGS = 12;
+	final int AVAILABLE_SETTINGS = 13;
 	
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
-		new Updater(this, projectID, this.getFile(), Updater.UpdateType.DEFAULT, true);
+		if(autoUpdate) new Updater(this, projectID, this.getFile(), Updater.UpdateType.DEFAULT, true);
 		
 		/** Load config **/
 		loadConfig();
@@ -76,14 +76,17 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		
 		if(checkWordsBackwards){
+			Set<String> badWordsBackwards = new HashSet<String>();
 			String newBadWord;
+			
 			for(String badword : badWords){
 				if(!badword.trim().contains(" ") && badword.equals(utils.removePunctuation(badword))){
 					newBadWord = utils.reverse(badword);
-					badWords.add(newBadWord);
+					badWordsBackwards.add(newBadWord);
 					if(subList.containsKey(badword)) subList.put(newBadWord, subList.get(badword));
 				}
 			}
+			badWords.addAll(badWordsBackwards);
 		}
 //		badWords = (String[]) wordList.toArray();
 		
@@ -456,6 +459,9 @@ public final class ChatManager extends JavaPlugin implements Listener{
 					else if(tag.equals("fixgrammer")){//12
 						fixGrammer = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 					}
+					else if(tag.equals("update")){//13
+						autoUpdate = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+					}
 					else continue;
 					settings++;
 				}
@@ -489,7 +495,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 					 "\n\nChat Colors: " + String.valueOf(color) +//10
 					 "\nChat Formats: " + String.valueOf(format) +//11
 					 
-					 "\n\nFix Grammer: " + String.valueOf(fixGrammer));//12
+					 "\n\nFix Grammer: " + String.valueOf(fixGrammer) +//12
+					 "\n\nAutomatic update check: " + String.valueOf(autoUpdate));
 			writer.close();
 		}
 		catch(IOException e1){getLogger().info(e1.getStackTrace().toString());}
