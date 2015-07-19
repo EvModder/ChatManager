@@ -1,12 +1,13 @@
 name: ChatManager
 main: EvCode.ChatManager.ChatManager
-Author: EvModder
-version: 1.5.3
+Author: EvModder/Evil_Witchdoctor/Anuvin
+version: 1.5.4
+softdepend: [Vault]
     
 commands:
    evcm:
       description: Commands for EvChatManager.
-      usage: Do /evcm help for chat commands
+      usage: Do /evcm help for ChatManager commands
       aliases: [chat,chatm,chatmanager,chat-manager,cm,evchatmanager]
       permission: evp.evcm
       permission-message: You do not have permission for this command.
@@ -29,19 +30,27 @@ permissions:
         default: op
         
    evp.evcm.togglecolor:
-        description: Toggle color usage ability on/off.
+        description: Toggle chat color usage ability on/off.
         default: false
         
    evp.evcm.toggleformat:
-        description: Toggle format usage ability on/off.
+        description: Toggle chat format usage ability on/off.
         default: false
         
    evp.evcm.chatcolor:
-        description: Allows players to use colors.
+        description: Allows players to use colors in chat.
         default: op
         
    evp.evcm.chatformat:
-        description: Allows players to use formats.
+        description: Allows players to use formats in chat.
+        default: op
+        
+   evp.evcm.signcolor:
+        description: Allows players to use colors on signs.
+        default: op
+        
+   evp.evcm.signformat:
+        description: Allows players to use formats on signs.
         default: op
         
    evp.evcm.spamfilter.exempt:

@@ -24,15 +24,16 @@ public class FileIO {
 			String line = null;
 			try{
 				while((line = reader.readLine()) != null){
-					if(!line.replace(" ", "").startsWith("//") && !line.replace(" ", "").startsWith("#")) builder.append(line);
+					if(!line.replace(" ", "").replace("#", "//").startsWith("//")) builder.append(line);
 				}reader.close();
 			}
 			catch(IOException e){plugin.getLogger().info(e.getMessage());}
 			
+			//replace ", " & "," & "
 			for(String word : builder.toString().replace("\", \"", "").replace("\",\"", "").replace("\"", "").split(",")){
-				if(word.length() > 1 && !word.replace(" ", "").isEmpty()){
+				if(!word.replace(" ", "").isEmpty()){
 					wordList.add(word.split("=")[0]);
-					if(word.contains("=")) subList.put(word.split("=")[0], word.split("=")[1]);
+					if(word.contains("="))subList.put(word.split("=")[0], word.split("=")[1]);
 				}
 			}
 			
@@ -79,15 +80,23 @@ public class FileIO {
 			String line = null;
 			try{
 				while((line = reader.readLine()) != null){
-					if(!line.replace(" ", "").startsWith("//") && !line.replace(" ", "").startsWith("#")) builder.append(line);
+					if(!line.replace(" ", "").replace("#", "//").startsWith("//")) builder.append(line);
 				}reader.close();
 			}
 			catch(IOException e){plugin.getLogger().info(e.getMessage());}
 			
 			for(String word : builder.toString().split(",")){
-				if(word.length() > 1 && !word.replace(" ", "").isEmpty()){
-					wordList.add(word.split("=")[0]);
-					if(word.contains("=")) subList.put(word.split("=")[0], word.split("=")[1]);
+				if(!word.replace(" ", "").isEmpty()){
+					if(word.contains("=")){
+						String[] pair = word.split("=");
+						
+						if(pair[0].equals(pair[1]) == false){
+							wordList.add(pair[0]);
+							subList.put(pair[0], pair[1]);
+						}
+						else wordList.remove(pair[0]);//If they did "damn=damn", they want to unblock the default.
+					}
+					else wordList.add(word);
 				}
 			}
 		}
