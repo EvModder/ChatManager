@@ -8,16 +8,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class FileIO {
-	public static void loadDefaultBlockedList(ChatManager plugin, Set<String> wordList, Map<String, String> subList){
+	public static void loadDefaultBlockedList(ChatManager plugin, List<String> wordList, Map<String, String> subList){
 		BufferedReader reader = null;
-		reader = new BufferedReader(
-				new InputStreamReader(
-				plugin.getClass()
-				.getResourceAsStream("/defaultblocked.txt")));
+		reader = new BufferedReader(new InputStreamReader(plugin.getClass().getResourceAsStream("/defaultblocked.txt")));
 		
 		if(reader != null){
 			StringBuilder builder = new StringBuilder();
@@ -29,11 +27,13 @@ public class FileIO {
 			}
 			catch(IOException e){plugin.getLogger().info(e.getMessage());}
 			
-			//replace ", " & "," & "
-			for(String word : builder.toString().replace("\", \"", "").replace("\",\"", "").replace("\"", "").split(",")){
-				if(!word.replace(" ", "").isEmpty()){
-					wordList.add(word.split("=")[0]);
-					if(word.contains("="))subList.put(word.split("=")[0], word.split("=")[1]);
+			for(String word : builder.toString().split(",")){
+				if(!word.trim().isEmpty()){
+					if(word.contains("=")){
+						subList.put(word.split("=")[0], word.split("=")[1]);
+						if(wordList.contains(word.split("=")[0]) == false) wordList.add(word.split("=")[0]);
+					}
+					else if(wordList.contains(word) == false) wordList.add(word);
 				}
 			}
 			
@@ -44,8 +44,7 @@ public class FileIO {
 		}
 	}
 	
-	public static void loadCustomBlockedList(ChatManager plugin, Set<String> wordList, Map<String, String> subList){
-		
+	public static void loadCustomBlockedList(ChatManager plugin, List<String> wordList, Map<String, String> subList){
 		BufferedReader reader = null;
 		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked words list.txt"));}
 		catch(FileNotFoundException e){
@@ -80,7 +79,7 @@ public class FileIO {
 			String line = null;
 			try{
 				while((line = reader.readLine()) != null){
-					if(!line.replace(" ", "").replace("#", "//").startsWith("//")) builder.append(line);
+					if(!line.trim().replaceFirst("#", "//").startsWith("//")) builder.append(line);
 				}reader.close();
 			}
 			catch(IOException e){plugin.getLogger().info(e.getMessage());}
@@ -91,19 +90,18 @@ public class FileIO {
 						String[] pair = word.split("=");
 						
 						if(pair[0].equals(pair[1]) == false){
-							wordList.add(pair[0]);
 							subList.put(pair[0], pair[1]);
+							if(wordList.contains(pair[0]) == false) wordList.add(pair[0]);
 						}
 						else wordList.remove(pair[0]);//If they did "damn=damn", they want to unblock the default.
 					}
-					else wordList.add(word);
+					else if(wordList.contains(word) == false) wordList.add(word);
 				}
 			}
 		}
 	}
 	
 	public static void loadBlockedBlockList(ChatManager plugin, Set<String> wordList){
-		
 		BufferedReader reader = null;
 		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked block-words list.txt"));}
 		catch(FileNotFoundException e){
@@ -136,5 +134,37 @@ public class FileIO {
 				if(word.length() > 1) wordList.add(word);
 			}
 		}
+	}
+	
+	public static String loadFile(String filename) {
+		BufferedReader reader = null;
+		try{reader = new BufferedReader(new FileReader(filename));}
+		catch(FileNotFoundException e){
+			return "";
+		}
+		StringBuilder file = new StringBuilder();
+		if(reader != null){
+			String line = null;
+			try{
+				while((line = reader.readLine()) != null){file.append(line);file.append('\n');}
+				reader.close();
+			}catch(IOException e){}
+		}
+		if(file.length() > 0) file.substring(0, file.length()-1);
+		return file.toString();
+	}
+
+	public static boolean saveFile(String filename, String content) {
+		//Create Directory
+		File dir = new File("./plugins/EvFolder");
+		if(!dir.exists()){dir.mkdir(); System.out.println("Directory Created!");}
+		
+		//Create the file
+		try{
+			BufferedWriter writer = new BufferedWriter(new FileWriter("./plugins/EvFolder/"+filename+".txt"));
+			writer.write(content); writer.close();
+			return true;
+		}
+		catch(IOException e){return false;}
 	}
 }

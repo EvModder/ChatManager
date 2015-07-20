@@ -17,9 +17,11 @@ public class VaultHook {
 	
 	public VaultHook(Plugin plugin){
 		if(!setupEconomy(plugin)) plugin.getLogger().warning("Vault not found, falling back to EssentialsEco as economy base");
-		else vaultEnabled = true;
-		setupPermissions(plugin);
-		setupChat(plugin);
+		else{
+			vaultEnabled = true;
+			setupPermissions(plugin);
+			setupChat(plugin);
+		}
 	}
 	
 	private boolean setupEconomy(Plugin plugin) {
@@ -47,7 +49,7 @@ public class VaultHook {
 	}
 	
 	public static boolean hasPermission(CommandSender p, String perm){
-		if(perms != null) return perms.has(p, perm);
+		if(perms != null && vaultEnabled) return perms.has(p, perm);
 		else return p.hasPermission(perm);
 		
 	}

@@ -1,12 +1,5 @@
 package EvCode.ChatManager;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,17 +15,19 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
-	boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, removeCaps = true;
-	boolean chatColor = true, chatFormat = true, signColor = true, signFormat = true;
-	boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
+	private boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, removeCaps = true;
+	private boolean chatColor = true, chatFormat = true, signColor = true, signFormat = true;
+	private boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
 	private String pluginPrefix = "§3<§aC§3>§f ";
 	
 	
@@ -43,15 +38,16 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	
 	/** Anti-Filth configuration **/
-	private Set<String> badWords;
+	private List<String> badWords;
+	private int minWordLengthToCheckBackwards = 4;
 	
 	private Map<String, String> subList;
 	private String defaultSub = "[-]";
-	Utils utils = new Utils();
+	private Utils utils = new Utils();
 	
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
-	final int AVAILABLE_SETTINGS = 14;
+	final int AVAILABLE_SETTINGS = 17;
 	
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
@@ -64,7 +60,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		/** Initialize variables **/
 		lastChats = new HashMap<UUID, List<Integer>>();
-		badWords = new HashSet<String>();
+		badWords = new ArrayList<String>();
 		subList = new HashMap<String, String>();
 		
 		/** Load word lists **/
@@ -76,18 +72,25 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			String newBadWord;
 			
 			for(String badword : badWords){
-				if(!badword.trim().contains(" ") && badword.length() > 3
-						&& badword.equals(utils.removePunctuation(badword))){
+				if(!badword.trim().contains(" ") && badword.length() >= minWordLengthToCheckBackwards
+						&& badword.equals(utils.removePunctuation(badword)))
+				{
 					newBadWord = utils.reverse(badword);
+					if(subList.containsKey(newBadWord)){
+						//method by which users can remove a backwards bad word from the blocked list
+						if(subList.get(newBadWord).equals(newBadWord)) continue;
+					}
+					else if(subList.containsKey(badword)) subList.put(newBadWord, subList.get(badword));
 					badWordsBackwards.add(newBadWord);
-					if(subList.containsKey(badword)) subList.put(newBadWord, subList.get(badword));
 				}
 			}
 			badWords.addAll(badWordsBackwards);
 		}
-		
-		/** Runs every 1 second to update recored chats and clear chats with old timestamps **/
-//		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){public void run(){updateLastChats();}}, 100, 20);
+		//loop through the subList and remove instances of "sameword=sameword"
+		for(String badword : subList.keySet()){
+			if(subList.get(badword).equals(badword)) subList.put(badword, null);
+		}
+		subList.remove(null);
 		
 		/** Check for Vault **/
 		new VaultHook(this);
@@ -100,7 +103,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		if(cmd.getName().equalsIgnoreCase("evcm") && args.length > 0){
 			args[0] = args[0].toLowerCase();
 			//=================================================================================================================
-			if(args[0].contains("spam") && VaultHook.hasPermission(sender, "evp.evcm.togglespam")){
+			if(args[0].contains("spam") && VaultHook.hasPermission(sender, "evp.chatmanager.togglespam")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) antiSpam = true;
 					else antiSpam = false;
@@ -110,7 +113,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				if(antiSpam) sender.sendMessage("SpamGuard Enabled.");
 				else sender.sendMessage("SpamGuard Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
-			else if(args[0].contains("filth") && VaultHook.hasPermission(sender, "evp.evcm.togglefilth")){
+			else if(args[0].contains("filth") && VaultHook.hasPermission(sender, "evp.chatmanager.togglefilth")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) antiChatFilth = true;
 					else antiChatFilth = false;
@@ -121,7 +124,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				else sender.sendMessage("FilthGuard Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
 			//~ ~ ~ ~ ~ ~ ~ ~
-			else if(args[0].contains("color") && VaultHook.hasPermission(sender, "evp.evcm.togglecolor")){
+			else if(args[0].contains("color") && VaultHook.hasPermission(sender, "evp.chatmanager.togglecolor")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) chatColor = true;
 					else chatColor = false;
@@ -131,7 +134,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				if(chatColor) sender.sendMessage("Chat-Colors Enabled.");
 				else sender.sendMessage("Chat-Colors Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
-			else if(args[0].contains("format") && VaultHook.hasPermission(sender, "evp.evcm.toggleformat")){
+			else if(args[0].contains("format") && VaultHook.hasPermission(sender, "evp.chatmanager.toggleformat")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) chatFormat = true;
 					else chatFormat = false;
@@ -151,7 +154,8 @@ public final class ChatManager extends JavaPlugin implements Listener{
 							"§7§l----------------------------------");
 			}
 			else if((args[0].equals("reload") || args[0].equals("load") || args[0].equals("config"))
-					&& VaultHook.hasPermission(sender, "evp.evcm.reload")){
+					&& VaultHook.hasPermission(sender, "evp.chatmanager.reload")){
+				HandlerList.unregisterAll((Plugin)this);
 				onEnable();
 				sender.sendMessage("§aFiles Reloaded!");
 			}
@@ -165,7 +169,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		else return false;
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerChat(AsyncPlayerChatEvent event){
 		//if it is already cancelled or is something a plugin forced the player to say
@@ -175,7 +179,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		String pName = event.getPlayer().getName();
 		
 		//-------------------------------------------------------------------------|
-		if(antiChatFilth && !VaultHook.hasPermission(event.getPlayer(), "evp.evcm.chatfilter.exempt")){
+		if(antiChatFilth && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatfilter.exempt")){
 			chat = filterOutBadWords(chat);
 			
 			String newChat = utils.removePunctuation(chat);
@@ -216,7 +220,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		//-------------------------------------------------------------------------|
 		
-		if(antiSpam && !event.getPlayer().hasPermission("evp.evcm.spamfilter.exempt")){
+		if(antiSpam && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.spamfilter.exempt")){
 			try{
 				lastChats.get(event.getPlayer().getUniqueId()).add(0);
 			}
@@ -251,33 +255,34 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				}
 			}
 			
-			//Keep players from repeating messages --------------------------------------------------------------
 			int chatLength =
 				ignoreAmperstand ? chat.replace("&", "").replace(defaultSub, "").length() : chat.replace(defaultSub, "").length();
 					
 			String noPuncChat = utils.removePunctuation(chat);
-			if(noPuncChat.length() > 4 || noPuncChat.equals(noPuncChat.toUpperCase())){
-				
-			}
-			//---------------------------------------------------------------------------------------------------
+			int noPuncChatLength = noPuncChat.length();
+			
 			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
-			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChat.length())){
+			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChatLength)){
 				chat = noPuncChat;
 				event.getPlayer().sendMessage(pluginPrefix+"§cSpam Detect. Perhaps try with less punctuation.");
 			}
 			
 			//If more then 55% of the chat is uppercase, make the chat lowercase
-			if(removeCaps && noPuncChat.length() > 13 && chatLength*.55 < noPuncChat.replaceAll("[^A-Z]", "").length()){
+			if(removeCaps && noPuncChatLength > 13 && chatLength*.55 < noPuncChat.replaceAll("[^A-Z]", "").length()){
 				chat = chat.toLowerCase();
 				event.getPlayer().sendMessage(pluginPrefix+"§cPlease don't shout. My ears are hurting xP");
 			}
+			
+			//Keep players from repeating messages --------------------------------------------------------------
+			/** TODO: fill this **/
+			//---------------------------------------------------------------------------------------------------
 		}
 		
-		if(chatFormat && event.getPlayer().hasPermission("evp.evcm.chatformat")){
-			chat = utils.determineFormats(chat);
+		if(chatFormat && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatformat")){
+			chat = utils.determineFormatsByPermission(chat, event.getPlayer());
 			
-			if(chatColor && event.getPlayer().hasPermission("evp.evcm.chatcolor")){
-				chat = utils.determineColors(chat);
+			if(chatColor && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatcolor")){
+				chat = utils.determineColorsByPermission(chat, event.getPlayer());
 			}
 			else{
 				// Look for a default message color, and if found, prevent them from changing the color with &f or &r
@@ -289,12 +294,12 @@ public final class ChatManager extends JavaPlugin implements Listener{
 					lastColorIndex = totalMessage.lastIndexOf('§', lastColorIndex);
 				}
 				if(lastColorIndex != -1){
-					chat = chat.replace("§f", lastColor.toString()).replace("§r", lastColor.toString());
+					chat = chat.replace("§f", "§r").replace("§r", lastColor.toString());
 				}
 			}
 		}
-		else if(chatColor && event.getPlayer().hasPermission("evp.evcm.chatcolor")){
-			chat = utils.determineColors(chat);
+		else if(chatColor && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatcolor")){
+			chat = utils.determineColorsByPermission(chat, event.getPlayer());
 		}
 		
 		chat = chat.trim();
@@ -307,25 +312,28 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void preCommand(PlayerCommandPreprocessEvent evt){
-		if(evt.getMessage().contains(" ") && antiCmdFilth && evt.isCancelled() == false){
+		if(evt.getMessage().contains(" ") && antiCmdFilth && evt.isCancelled() == false
+				&& !VaultHook.hasPermission(evt.getPlayer(), "evp.chatmanager.chatfilter.exempt")){
+			StringBuilder builder = new StringBuilder(' ');
 			String[] args = evt.getMessage().split(" ");
-			String chat = " ";
-			for(int i = 1; i < args.length; i++)chat+=args[i]+' ';
-			
-			if(hasBadWords(chat)) evt.setCancelled(true);
-			else{
-				chat = utils.convertFrom1337(utils.removePunctuation(chat));
-				if(hasBadWords(chat)) evt.setCancelled(true);
-				else if(hasBadWords(utils.combineRepeatedChars(chat))) evt.setCancelled(true);
-				else return;
+			for(int i = 1; i < args.length; i++){
+				builder.append(args[i]);
+				builder.append(' ');
 			}
-			evt.getPlayer().sendMessage("§7Really now?");
+			String chat = filterOutBadWords(builder.toString());
+			evt.setMessage(chat.trim());
+			
+			chat = utils.convertFrom1337(utils.removePunctuation(chat));
+			if(hasBadWords(chat)) evt.setCancelled(true);
+			else if(hasBadWords(utils.combineRepeatedChars(chat))) evt.setCancelled(true);
+			else return;
+			evt.getPlayer().sendMessage(pluginPrefix+"§7Really now?");
 		}
 	}
 	
 	@EventHandler
 	public void signPlaceEvent(SignChangeEvent evt){
-		if(!antiSignFilth || evt.isCancelled()) return;
+		if(!antiSignFilth || evt.isCancelled() || VaultHook.hasPermission(evt.getPlayer(), "evp.chatmanager.chatfilter.exempt")) return;
 		
 		StringBuilder builder = new StringBuilder(' ');
 		builder.append(evt.getLine(0)); builder.append(" \n ");
@@ -352,13 +360,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	}
 	
 	public boolean hasBadWords(String chat){
-		chat = chat.toLowerCase();
-//		for(int i = 0; i < badWords.length; i++){
-//			if(chat.contains(badWords[i])){
-//				//If this bad word has a replacement to use and its replacement is itself, then it's not considered a bad word
-//				if(!subs.containsKey(badWords[i]) || !subs.get(badWords[i]).equals(badWords[i])) return true;
-//			}
-//		}
+		
 		for(String badword : badWords){
 			if(chat.contains(badword)){
 				//If this bad word does not have a custom replacement or 
@@ -388,6 +390,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		lastChats.remove(evt.getPlayer().getUniqueId());
 	}
 	
+	//
 	private boolean updateLastChatsLoopRunning;
 	private void updateLastChats(boolean setActive){
 		if(setActive == false){updateLastChatsLoopRunning = false; return;}
@@ -424,111 +427,105 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	}
 	
 	private void loadConfig(){
-		BufferedReader reader = null;
-		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/chatmanager config.txt"));}
-		catch(FileNotFoundException e){
+		String[] lines = FileIO.loadFile("chatmanager config").split("\n");
+		int settings = 0;
+		boolean invalidConfig = false;
+		
+		for(String line : lines){
+			if(line.contains(":") == false || line.trim().replaceFirst("//", "#").startsWith("#")) continue;
+			String[] split = line.toLowerCase().split(":");
+			String tag = split[0].replace(" ", ""); String value = split[1].trim();
 			
-			//Create Directory
-			File dir = new File("./plugins/EvFolder");
-			if(!dir.exists()){dir.mkdir(); getLogger().info("Directory Created!");}
-			
-			//Create the config file
-			writeConfig();
-			return;
+			if(tag.equals("blockspam")){//1
+				antiSpam = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.contains("ignore'&'")){//2
+				ignoreAmperstand = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.equals("spamresult")){//3
+				spamResultCmd = line.split(":")[1].trim();
+				if(!spamResultCmd.startsWith("/")) spamResultCmd = '/'+spamResultCmd;
+			}
+			else if(tag.contains("perminute")){//4
+				try{maxChatsPerMinute = Integer.parseInt(value);}
+				catch(NumberFormatException ex){invalidConfig = true;}
+			}
+			else if(tag.contains("per10s")){//5
+				try{maxChatsPer10s = Integer.parseInt(value);}
+				catch(NumberFormatException ex){invalidConfig = true;}
+			}
+			else if(tag.contains("persecond")){//6
+				try{maxChatsPerSecond = Integer.parseInt(value);}
+				catch(NumberFormatException ex){invalidConfig = true;}
+			}
+			else if(tag.equals("sanitizechat")){//7
+				antiChatFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.equals("sanitizecommands")){//8
+				antiCmdFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.equals("sanitizesign")){//9
+				antiSignFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.contains("backwards")){//10
+				checkWordsBackwards = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.contains("replacement")){//11
+				defaultSub = value;
+			}
+			else if(tag.equals("chatcolors")){//12
+				chatColor = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.equals("chatformats")){//13
+				chatFormat = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.equals("signcolors")){//14
+				signColor = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.equals("signformats")){//15
+				signFormat = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.contains("update")){//16
+				autoUpdate = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.contains("prefix")){//17
+				pluginPrefix = line.split(":")[1].trim()+' ';
+			}
+			else continue;
+			settings++;
 		}
-		if(reader != null){
-			String line = null;
-			int settings = 0;
-			try{
-				while((line = reader.readLine()) != null){
-					if(line.split(":").length < 2) continue;
-					String[] split = line.toLowerCase().split(":");
-					String tag = split[0].replace(" ", ""); String value = split[1].trim();
-					
-					if(tag.equals("blockspam")){//1
-						antiSpam = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.contains("ignore'&'")){//2
-						ignoreAmperstand = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.equals("spamresult")){//3
-						spamResultCmd = value;
-						if(!spamResultCmd.startsWith("/")) spamResultCmd = '/'+spamResultCmd;
-					}
-					else if(tag.equals("sanitizechat")){//4
-						antiChatFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.equals("sanitizecommands")){//5
-						antiCmdFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.equals("sanitizesign")){//6
-						antiSignFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.contains("backwards")){//7
-						checkWordsBackwards = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.contains("replacement")){//8
-						defaultSub = value;
-					}
-					else if(tag.equals("chatcolors")){//9
-						chatColor = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.equals("chatformats")){//10
-						chatFormat = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.equals("signcolors")){//11
-						signColor = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.equals("signformats")){//12
-						signFormat = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.contains("update")){//13
-						autoUpdate = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-					}
-					else if(tag.contains("prefix")){//14
-						pluginPrefix = line.split(":")[1].trim()+' ';
-					}
-					else continue;
-					settings++;
-				}
-				reader.close();
-			}
-			catch(IOException e){getLogger().info(e.getMessage());}
-			if(settings < AVAILABLE_SETTINGS){
-				writeConfig();
-			}
+		if(settings < AVAILABLE_SETTINGS || invalidConfig){
+			writeConfig();
 		}
 	}
 	
 	private void writeConfig(){
-		File conf = new File("./plugins/EvFolder/chatmanager config.txt");
-		try{
-			conf.createNewFile();
-			BufferedWriter writer = new BufferedWriter(new FileWriter(conf));
-			writer.write(
-					 "Block Spam: " + String.valueOf(antiSpam) +//1
-					 "\nIgnore '&' as Punctuation: " + ignoreAmperstand +//2
-					 "\nSpam Result Console Command: " + spamResultCmd +//3
+		StringBuilder config = new StringBuilder();
+		config.append("Block Spam: "); config.append(antiSpam);//1
+		config.append("\n Ignore '&' as Punctuation: "); config.append(ignoreAmperstand);//2
+		config.append("\n Spam Result Console Command: "); config.append(spamResultCmd);//3
+		config.append("\n MaxChatsPerPlayerPerMinute: "); config.append(maxChatsPerMinute );//4
+		config.append("\n MaxChatsPerPlayerPer10s: "); config.append(maxChatsPer10s);//5
+		config.append("\n MaxChatsPerPlayerPerSecond: "); config.append(maxChatsPerSecond );//6
+		
+		config.append("\n\nSanitize Chat: "); config.append(antiChatFilth);//7
+		config.append("\nSanitize Commands: "); config.append(antiCmdFilth);//8
+		config.append("\nSanitize Sign Text: "); config.append(antiSignFilth);//9
+		config.append("\n\n#Warning: the following configuration option can cause harmless ");
+		config.append("\n#words to be blocked if their reversed spelling matches a bad word.");
+		config.append("\nCheck words backwards in antiFilth: "); config.append(checkWordsBackwards);//10
+		config.append("\nDefault Badword Replacement: "); config.append(defaultSub);//11
 					 
-					 "\n\nSanitize Chat: " + String.valueOf(antiChatFilth) +//4
-					 "\nSanitize Commands: " + String.valueOf(antiCmdFilth) +//5
-					 "\nSanitize Sign Text: "+ String.valueOf(antiSignFilth) +//6
-					 "\n\n#Warning: the following configuration option can cause harmless words to be blocked " +
-					 "\n#When their backwards spelling matches a blocked word." +
-					 "\nCheck words backwards in antiFilth: " + checkWordsBackwards +//7
-					 "\nDefault Badword Replacement: " + defaultSub +//8
-					 
-					 "\n\nIt is generally good to disable these if you have another plugin" +
-					 "\nthat handles sign/chat color (such as EssentialsChat)" +
-					 "\nChat Colors: " + String.valueOf(chatColor) +//9
-					 "\nChat Formats: " + String.valueOf(chatFormat) +//10
-					 "\nSign Colors: " + String.valueOf(signColor) +//11
-					 "\nSign Formats: " + String.valueOf(signFormat) +//12
-					 
-					 "\n\nAutomatic update check: " + String.valueOf(autoUpdate) + //13
-					 "\nPlugin Prefix (before plugin->player messages): " + pluginPrefix);//14
-			writer.close();
-		}
-		catch(IOException e1){getLogger().info(e1.getStackTrace().toString());}
+		config.append("\n\nIt is generally good to disable these if you have another plugin");
+		config.append("\nthat handles sign/chat color (such as EssentialsChat)");
+		config.append("\nChat Colors: "); config.append(chatColor);//12
+		config.append("\nChat Formats: "); config.append(chatFormat);//13
+		config.append("\nSign Colors: "); config.append(signColor);//14
+		config.append("\nSign Formats: "); config.append(signFormat);//15
+		
+		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //16
+		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//17
+		
+		FileIO.saveFile("chatmanager config", config.toString());
 	}
 }

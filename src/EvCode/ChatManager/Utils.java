@@ -1,5 +1,8 @@
 package EvCode.ChatManager;
 
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+
 public class Utils {
 	
 	/** Strip punctuation, NOTE: Does not remove spaces **/
@@ -71,6 +74,36 @@ public class Utils {
 			.replace("&k", "§k").replace("&l", "§l").replace("&m", "§m")
 			.replace("&n", "§n").replace("&o", "§o").replace("&r", "§r")
 			.replace("&f", "§f").replace("§§", "&").replace("\\§", "&");
+	}
+	
+	/** Decipher colors in a string and place them based on permissions **/
+	char[] chatColors = {'1','2','3','4','5','6','7','8','9','0','a','b','c','d','e','f','r'};
+	public String determineColorsByPermission(String str, Player player){
+		if(str.replace("&&", "").replace("\\&", "").contains("&") == false) return str;
+		
+		for(char color : chatColors){
+			if(str.contains("&") == false) break;
+			if(str.contains("&"+color) && (VaultHook.hasPermission(player, "evp.evcm.chatcolor."+color)
+					|| VaultHook.hasPermission(player, "evp.evcm.chatcolor."+ChatColor.getByChar(color)))){
+				str = str.replace("&"+color, "§"+color);
+			}
+		}
+		return str.replace("&§", "&").replace("\\§", "&");
+	}
+	
+	/** Decipher formats in a string and place them based on permissions **/
+	char[] chatFomats = {'k','l','m','n','o','r','f'};
+	public String determineFormatsByPermission(String str, Player player){
+		if(str.replace("&&", "").replace("\\&", "").contains("&") == false) return str;
+		
+		for(char format : chatColors){
+			if(str.contains("&") == false) break;
+			if(str.contains("&"+format) && (VaultHook.hasPermission(player, "evp.evcm.chatformat."+format)
+					|| VaultHook.hasPermission(player, "evp.evcm.chatformat."+ChatColor.getByChar(format)))){
+				str = str.replace("&"+format, "§"+format);
+			}
+		}
+		return str.replace("&§", "&").replace("\\§", "&");
 	}
 	
 	/** Replace all occurances of the regex with the replacement **/

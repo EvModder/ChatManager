@@ -9,54 +9,80 @@ commands:
       description: Commands for EvChatManager.
       usage: Do /evcm help for ChatManager commands
       aliases: [chat,chatm,chatmanager,chat-manager,cm,evchatmanager]
-      permission: evp.evcm
+      permission: evp.chatmanager.command
       permission-message: You do not have permission for this command.
      
 permissions:
-   evp.evcm:
-        description: Allows access to the /chat command
+   evp.chatmanager.command:
+        description: Allows access to the /chatmanager command
         default: op
         
-   evp.evcm.reload:
+   evp.chatmanager.reload:
         description: Reload all configuration settings.
         default: op
         
-   evp.evcm.togglespam:
+   evp.chatmanager.togglespam:
         description: Toggle spam-blocking on/off.
         default: op
         
-   evp.evcm.togglefilth:
+   evp.chatmanager.togglefilth:
         description: Toggle chat-filter on/off.
         default: op
         
-   evp.evcm.togglecolor:
-        description: Toggle chat color usage ability on/off.
+   evp.chatmanager.togglecolor:
+        description: Toggle server-wide chat color usage ability on/off.
         default: false
         
-   evp.evcm.toggleformat:
-        description: Toggle chat format usage ability on/off.
+   evp.chatmanager.toggleformat:
+        description: Toggle server-wide chat format usage ability on/off.
         default: false
         
-   evp.evcm.chatcolor:
+   evp.chatmanager.chatcolor:
         description: Allows players to use colors in chat.
+        children:
+            evp.chatmanager.chatcolor.AQUA: true
+            evp.chatmanager.chatcolor.BLACK: true
+            evp.chatmanager.chatcolor.BLUE: true
+            evp.chatmanager.chatcolor.DARK_AQUA: true
+            evp.chatmanager.chatcolor.DARK_BLUE: true
+            evp.chatmanager.chatcolor.DARK_GRAY: true
+            evp.chatmanager.chatcolor.DARK_GREEN: true
+            evp.chatmanager.chatcolor.DARK_PURPLE: true
+            evp.chatmanager.chatcolor.DARK_RED: true
+            evp.chatmanager.chatcolor.GOLD: true
+            evp.chatmanager.chatcolor.GRAY: true
+            evp.chatmanager.chatcolor.GREEN: true
+            evp.chatmanager.chatcolor.LIGHT_PURPLE: true
+            evp.chatmanager.chatcolor.RED: true
+            evp.chatmanager.chatcolor.WHITE: true
+            evp.chatmanager.chatcolor.YELLOW: true
+            evp.chatmanager.chatcolor.RESET: true
         default: op
         
    evp.evcm.chatformat:
         description: Allows players to use formats in chat.
+        children:
+            evp.chatmanager.chatcolor.RESET: true
+            evp.chatmanager.chatcolor.MAGIC: true
+            evp.chatmanager.chatcolor.UNDERLINE: true
+            evp.chatmanager.chatcolor.STRIKETHROUGH: true
+            evp.chatmanager.chatcolor.ITALIC: true
+            evp.chatmanager.chatcolor.BOLD: true
+            evp.chatmanager.chatcolor.WHITE: true
         default: op
         
-   evp.evcm.signcolor:
+   evp.chatmanager.signcolor:
         description: Allows players to use colors on signs.
         default: op
         
-   evp.evcm.signformat:
+   evp.chatmanager.signformat:
         description: Allows players to use formats on signs.
         default: op
         
-   evp.evcm.spamfilter.exempt:
+   evp.chatmanager.spamfilter.exempt:
         description: Chats from this player will not be monitored by the spam-filter
         default: op
         
-   evp.evcm.chatfilter.exempt:
+   evp.chatmanager.chatfilter.exempt:
         description: Chats from this player will not be monitored by the chat-filter
         default: false
