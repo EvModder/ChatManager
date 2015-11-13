@@ -33,13 +33,12 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	/** Anti-Spam configuration **/
 	private String spamResultCmd = "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P";
-	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 3;
+	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 2;
 	private Map<UUID, List<Integer>> lastChats;
 	
 	
 	/** Anti-Filth configuration **/
 	private List<String> badWords;
-	private boolean useDefaultBlockedList;
 	private int minWordLengthToCheckBackwards = 4;
 	
 	private Map<String, String> subList;
@@ -48,7 +47,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
-	final int AVAILABLE_SETTINGS = 18;
+	final int AVAILABLE_SETTINGS = 17;
 	
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
@@ -65,7 +64,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		subList = new HashMap<String, String>();
 		
 		/** Load word lists **/
-		if(useDefaultBlockedList) FileIO.loadDefaultBlockedList(this, badWords, subList);
+		FileIO.loadDefaultBlockedList(this, badWords, subList);
 		FileIO.loadCustomBlockedList(this, badWords, subList);
 		
 		if(checkWordsBackwards){
@@ -322,7 +321,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				builder.append(' ');
 			}
 			String chat = filterOutBadWords(builder.toString());
-			if(!chat.equals(builder.toString())) evt.setMessage(evt.getMessage().split(" ")[0]+' '+chat.trim());
+			evt.setMessage(chat.trim());
 			
 			chat = utils.convertFrom1337(utils.removePunctuation(chat));
 			if(hasBadWords(chat)) evt.setCancelled(true);
@@ -474,25 +473,22 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			else if(tag.contains("replacement")){//11
 				defaultSub = value;
 			}
-			else if(tag.contains("defaultblocked")){//12
-				useDefaultBlockedList = (value.equals("true") || value.equals("yes") || value.equals("yup"));
-			}
-			else if(tag.equals("chatcolors")){//13
+			else if(tag.equals("chatcolors")){//12
 				chatColor = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.equals("chatformats")){//14
+			else if(tag.equals("chatformats")){//13
 				chatFormat = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.equals("signcolors")){//15
+			else if(tag.equals("signcolors")){//14
 				signColor = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.equals("signformats")){//16
+			else if(tag.equals("signformats")){//15
 				signFormat = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.contains("update")){//17
+			else if(tag.contains("update")){//16
 				autoUpdate = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.contains("prefix")){//18
+			else if(tag.contains("prefix")){//17
 				pluginPrefix = line.split(":")[1].trim()+' ';
 			}
 			else continue;
@@ -519,20 +515,16 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		config.append("\n#words to be blocked if their reversed spelling matches a bad word.");
 		config.append("\nCheck words backwards in antiFilth: "); config.append(checkWordsBackwards);//10
 		config.append("\nDefault Badword Replacement: "); config.append(defaultSub);//11
-		config.append("\n\n#It is highly recommended that you enable this feature unless");
-		config.append("\n#you want to add every existing obscenity yourself, or unless");
-		config.append("\n#you are merely using this plugin to fix grammer mistakes.");
-		config.append("\nUse default blocked word list: "); config.append(useDefaultBlockedList);//12
 					 
 		config.append("\n\nIt is generally good to disable these if you have another plugin");
 		config.append("\nthat handles sign/chat color (such as EssentialsChat)");
-		config.append("\nChat Colors: "); config.append(chatColor);//13
-		config.append("\nChat Formats: "); config.append(chatFormat);//14
-		config.append("\nSign Colors: "); config.append(signColor);//15
-		config.append("\nSign Formats: "); config.append(signFormat);//16
+		config.append("\nChat Colors: "); config.append(chatColor);//12
+		config.append("\nChat Formats: "); config.append(chatFormat);//13
+		config.append("\nSign Colors: "); config.append(signColor);//14
+		config.append("\nSign Formats: "); config.append(signFormat);//15
 		
-		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //17
-		config.append("\nPlugin Prefix (for plugin->player messages): "); config.append(pluginPrefix);//18
+		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //16
+		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//17
 		
 		FileIO.saveFile("chatmanager config", config.toString());
 	}

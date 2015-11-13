@@ -138,7 +138,7 @@ public class FileIO {
 	
 	public static String loadFile(String filename) {
 		BufferedReader reader = null;
-		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/"+filename+".txt"));}
+		try{reader = new BufferedReader(new FileReader(filename));}
 		catch(FileNotFoundException e){
 			return "";
 		}
