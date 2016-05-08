@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.ListIterator;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang.StringUtils;
@@ -23,11 +24,13 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
 	private boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, removeCaps = true;
 	private boolean chatColor = true, chatFormat = true, signColor = true, signFormat = true;
-	private boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
+	private boolean antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
 	private String pluginPrefix = "§3<§aC§3>§f ";
 	
 	
@@ -38,6 +41,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	
 	/** Anti-Filth configuration **/
+	private String filthResultCmd = "";
 	private List<String> badWords;
 	private int minWordLengthToCheckBackwards = 4;
 	
@@ -56,7 +60,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		/** Check for an update **/
 		if(autoUpdate) new Updater(this, projectID, this.getFile(), Updater.UpdateType.DEFAULT, true);
-		else  new Updater(this, projectID, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, true);
+		else new Updater(this, projectID, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, true);
 		
 		/** Initialize variables **/
 		lastChats = new HashMap<UUID, List<Integer>>();
@@ -80,7 +84,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 						//method by which users can remove a backwards bad word from the blocked list
 						if(subList.get(newBadWord).equals(newBadWord)) continue;
 					}
-					else if(subList.containsKey(badword)) subList.put(newBadWord, subList.get(badword));
+					else if(subList.containsKey(badword.trim())) subList.put(newBadWord.trim(), subList.get(badword));
 					badWordsBackwards.add(newBadWord);
 				}
 			}
@@ -173,110 +177,46 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerChat(AsyncPlayerChatEvent event){
 		//if it is already cancelled or is something a plugin forced the player to say
-		if(event.isCancelled() || !event.isAsynchronous())return;
+		if(event.isCancelled() || !event.isAsynchronous()) return;
 		
 		String chat = ' '+event.getMessage()+' ';
 		String pName = event.getPlayer().getName();
 		
-		//-------------------------------------------------------------------------|
+		//-------------------------------------------------------------------------
 		if(antiChatFilth && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatfilter.exempt")){
 			chat = filterOutBadWords(chat);
 			
-			String newChat = utils.removePunctuation(chat);
-			if(hasBadWords(newChat)){
-				chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
-				getLogger().info("De-Punc. Chat: "+newChat);
-			}
-			else{
-				newChat = utils.combineRepeatedChars(utils.removeLowerCaseAndPunc(newChat));
-				if(hasBadWords(newChat)){
-					chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
-					getLogger().info("Uppercase-Only Chat: "+newChat);
-				}
-				else{
-					newChat = utils.removePunctuation(utils.convertFrom1337(chat));
+			String dePuncChat = utils.removePunctuation(chat);
+			String deLeetChat1 = utils.removePunctuation(utils.convertFrom1337(chat));
+			String deLeetChat2 = utils.convertFrom1337(utils.removeNonAlphanumeric(chat));
+			String deLowercaseChat = dePuncChat.toLowerCase();
+			String deUppercaseChat = dePuncChat.toUpperCase();
+			String newChat = dePuncChat+' '+deLowercaseChat+' '+deUppercaseChat+' '+
+							 deLeetChat1+' '+deLeetChat2+' '+// leet variations, 1=i=l
+							 deLeetChat1.replace('L', 'I')+' '+deLeetChat2.replace('L', 'I')+' '+
+							 deLowercaseChat+' '+deUppercaseChat+' '+
+							 utils.combineRepeatedChars(dePuncChat)+' '+utils.combineRepeatedChars(deLeetChat1)+' '+
+							 utils.combineRepeatedChars(chat);
 					
-					if(newChat.length() > 0){
-						newChat = utils.combineRepeatedChars(newChat);
-						if(hasBadWords(newChat)){
-							chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
-							getLogger().info("Abv. Chat: "+newChat);
-						}
-						else{
-							newChat = utils.removeLowerCaseAndPunc(newChat);
-							if(hasBadWords(newChat)){
-								chat = (defaultSub.length() > 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
-								getLogger().info("Uppercase-Only Chat: "+newChat);
-							}
-						}
-					}
-				}
+			if(hasBadWords(newChat.toLowerCase())){
+				// TODO: make a substitution algorithm
+				chat = (defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
+				getLogger().info("Original Chat: "+newChat);
 			}
 			
-			if(chat.equalsIgnoreCase("<-> "+event.getMessage()+" <->") == false){
+			if(!chat.equals(' '+event.getMessage()+' ')){// message has changed
 				// they've been naughty!
 				// TODO: maybe add some punishment or something here
-			}
-		}
-		//-------------------------------------------------------------------------|
-		
-		if(antiSpam && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.spamfilter.exempt")){
-			try{
-				lastChats.get(event.getPlayer().getUniqueId()).add(0);
-			}
-			catch(NullPointerException ex){
-				lastChats.put(event.getPlayer().getUniqueId(), new ArrayList<Integer>());
-				lastChats.get(event.getPlayer().getUniqueId()).add(0);
-			}
-			updateLastChats(true);
-			
-			// Chat timestamps are thrown out every minute or so
-			int inLastSecond=0, inLast10s=0, inLastMinute=0;
-			for(int timeElapsed : lastChats.get(event.getPlayer().getUniqueId())){
-				
-				if(timeElapsed <= 60){
-					inLastMinute++;
-					if(timeElapsed <= 10){
-						inLast10s++;
-						if(timeElapsed <= 1) inLastSecond++;
-					}
-				}
-			}
-			if(inLastSecond > maxChatsPerSecond || inLast10s > maxChatsPer10s || inLastMinute > maxChatsPerMinute){
-				event.getPlayer().sendMessage(pluginPrefix + "Please slow down chat a little.");
-				
-				//If they continue to spam after the warning..
-				if(inLastSecond > maxChatsPerSecond+2 || inLast10s > maxChatsPer10s+3 || inLastMinute > maxChatsPerMinute+5){
-//					getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd);
+				if(filthResultCmd != null && !filthResultCmd.isEmpty()){
+					getLogger().info("Running command: "+filthResultCmd);
 					final String name = pName;
-					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){@Override public void run(){
-						getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd.replace("%name%", name));
-					}});
+					new BukkitRunnable(){@Override public void run(){
+						getServer().dispatchCommand(getServer().getConsoleSender(), filthResultCmd.replace("%name%", name));
+					}}.run();
 				}
 			}
-			
-			int chatLength =
-				ignoreAmperstand ? chat.replace("&", "").replace(defaultSub, "").length() : chat.replace(defaultSub, "").length();
-					
-			String noPuncChat = utils.removePunctuation(chat);
-			int noPuncChatLength = noPuncChat.length();
-			
-			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
-			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChatLength)){
-				chat = noPuncChat;
-				event.getPlayer().sendMessage(pluginPrefix+"§cSpam Detect. Perhaps try with less punctuation.");
-			}
-			
-			//If more then 55% of the chat is uppercase, make the chat lowercase
-			if(removeCaps && noPuncChatLength > 13 && chatLength*.55 < noPuncChat.replaceAll("[^A-Z]", "").length()){
-				chat = chat.toLowerCase();
-				event.getPlayer().sendMessage(pluginPrefix+"§cPlease don't shout. My ears are hurting xP");
-			}
-			
-			//Keep players from repeating messages --------------------------------------------------------------
-			/** TODO: fill this **/
-			//---------------------------------------------------------------------------------------------------
 		}
+		//-------------------------------------------------------------------------
 		
 		if(chatFormat && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatformat")){
 			chat = utils.determineFormatsByPermission(chat, event.getPlayer());
@@ -301,6 +241,61 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		else if(chatColor && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatcolor")){
 			chat = utils.determineColorsByPermission(chat, event.getPlayer());
 		}
+		//-------------------------------------------------------------------------
+		
+		if(antiSpam && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.spamfilter.exempt")){
+			if(lastChats.containsKey(event.getPlayer().getUniqueId())){
+				lastChats.get(event.getPlayer().getUniqueId()).add(0);
+			}
+			else{
+				lastChats.put(event.getPlayer().getUniqueId(), new ArrayList<Integer>());
+				lastChats.get(event.getPlayer().getUniqueId()).add(0);
+			}
+			updateLastChats(false);
+			
+			// Chat timestamps are thrown out every minute or so
+			int inLastSecond=0, inLast10s=0, inLastMinute=0;
+			for(int timeElapsed : lastChats.get(event.getPlayer().getUniqueId())){
+				
+				++inLastMinute;// only retained for 60 seconds, so all of them match this
+				if(timeElapsed <= 10){
+					++inLast10s;
+					if(timeElapsed <= 1) ++inLastSecond;
+				}
+			}
+			if(inLastSecond > maxChatsPerSecond || inLast10s > maxChatsPer10s || inLastMinute > maxChatsPerMinute){
+				event.getPlayer().sendMessage(pluginPrefix + "Please slow down chat a little.");
+				
+				//If they continue to spam after the warning...
+				if(inLastSecond > maxChatsPerSecond+2 || inLast10s > maxChatsPer10s+3 || inLastMinute > maxChatsPerMinute+5){
+//					getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd);
+					final String name = pName;
+					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){@Override public void run(){
+						getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd.replace("%name%", name));
+					}});
+				}
+			}
+			String colorless = ChatColor.stripColor(chat);
+			int chatLength = colorless.length();
+			String noPuncChat = utils.removePunctuation(chat);
+			int noPuncChatLength = utils.removePunctuation(colorless).length();
+			
+			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
+			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChatLength)){
+				chat = noPuncChat;
+				event.getPlayer().sendMessage(pluginPrefix+"§cSpam Detect. Perhaps try with less punctuation.");
+			}
+			
+			//If more then 55% of the chat is uppercase, make the chat lowercase
+			if(removeCaps && noPuncChatLength > 13 && chatLength*.55 < noPuncChat.replaceAll("[^A-Z]", "").length()){
+				chat = chat.toLowerCase();
+				event.getPlayer().sendMessage(pluginPrefix+"§cPlease don't shout. My ears are hurting xP");
+			}
+			
+			//Keep players from repeating messages --------------------------------------------------------------
+			/** TODO: make this? **/
+			//---------------------------------------------------------------------------------------------------
+		}
 		
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
@@ -312,11 +307,11 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void preCommand(PlayerCommandPreprocessEvent evt){
-		if(evt.getMessage().contains(" ") && antiCmdFilth && evt.isCancelled() == false
+		if(evt.getMessage().contains(" ") && antiCmdFilth && !evt.isCancelled()
 				&& !VaultHook.hasPermission(evt.getPlayer(), "evp.chatmanager.chatfilter.exempt")){
 			StringBuilder builder = new StringBuilder(' ');
 			String[] args = evt.getMessage().split(" ");
-			for(int i = 1; i < args.length; i++){
+			for(int i = 1; i < args.length; ++i){
 				builder.append(args[i]);
 				builder.append(' ');
 			}
@@ -360,26 +355,19 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	}
 	
 	public boolean hasBadWords(String chat){
-		
-		for(String badword : badWords){
-			if(chat.contains(badword)){
-				//If this bad word does not have a custom replacement or 
-				if(!subList.containsKey(badword) || !subList.get(badword).equals(badword)) return true;
-			}
-		}
+		for(String badword : badWords) if(chat.contains(badword)) return true;
 		return false;
 	}
 	
 	public String filterOutBadWords(String chat){
 		String lowerCaseChat = chat.toLowerCase();
-		
 		for(String badword : badWords){
-			if(chat.contains(badword)) chat = chat.replaceAll(badword.trim(),
-					(subList.containsKey(badword)) ? subList.get(badword) :
+			if(chat.contains(badword)) chat = chat.replace(badword.trim(),
+					(subList.containsKey(badword.trim())) ? subList.get(badword.trim()) :
 					((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
 			
-			if(lowerCaseChat.contains(badword)) chat = utils.replaceIgnoreCase(chat, badword.trim(),
-					(subList.containsKey(badword)) ? subList.get(badword) :
+			else if(lowerCaseChat.contains(badword)) chat = utils.replaceIgnoreCase(chat, badword.trim(),
+					(subList.containsKey(badword.trim())) ? subList.get(badword.trim()) :
 					((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
 		}
 		return chat;
@@ -390,44 +378,42 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		lastChats.remove(evt.getPlayer().getUniqueId());
 	}
 	
-	//
-	private boolean updateLastChatsLoopRunning;
-	private void updateLastChats(boolean setActive){
-		if(setActive == false){updateLastChatsLoopRunning = false; return;}
-		else if(updateLastChatsLoopRunning) return;
-		else{
-			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
-				public void run(){
-					boolean remainingChats = false;
-					for(UUID uuid : lastChats.keySet()){
-						List<Integer> chats = lastChats.get(uuid);
-//						chats.forEach(new Consumer<Integer>(){
-//							@Override public void accept(Integer chat){chat++;}
-//						});
-						for(int i = 0; i < chats.size(); i++) chats.set(i, chats.get(i)+1);
-						
-						chats.removeIf(new Predicate<Integer>(){
-							@Override
-							public boolean test(Integer timeStamp) {
-								return timeStamp > 60;
-							}
-						});
-						lastChats.put(uuid, chats);
-						if(!chats.isEmpty()) remainingChats = true;
-					}
+	private boolean alreadyRunning;
+	private void updateLastChats(boolean disable){
+		if(disable){alreadyRunning = false; return;}
+		if(alreadyRunning) return;
+		alreadyRunning = true;
+		
+		new BukkitRunnable(){
+			@Override public void run(){
+				boolean remainingChats = false;
+				for(UUID uuid : lastChats.keySet()){
+					List<Integer> chats = lastChats.get(uuid);
 					
-					//check wether to continue checking chats
-					if(updateLastChatsLoopRunning && remainingChats){
-						updateLastChatsLoopRunning = false;
-						updateLastChats(true);
+					ListIterator<Integer> i = chats.listIterator();
+					while(i.hasNext()){
+						Integer timeStamp = i.next();
+						i.set(timeStamp+1);
 					}
+					chats.removeIf(new Predicate<Integer>(){
+						@Override
+						public boolean test(Integer timeStamp) {
+							return timeStamp > 60;
+						}
+					});
+					lastChats.put(uuid, chats);
+					if(!chats.isEmpty()) remainingChats = true;
 				}
-			}, 20);//every 1 second
-		}
+				
+				if(remainingChats){
+					updateLastChats(alreadyRunning = false);
+				}
+			}
+		}.runTaskLater(this, 20);// 1 second
 	}
 	
 	private void loadConfig(){
-		String[] lines = FileIO.loadFile("chatmanager config").split("\n");
+		String[] lines = FileIO.loadFile("chatmanager config.txt").split("\n");
 		int settings = 0;
 		boolean invalidConfig = false;
 		
@@ -439,32 +425,33 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			if(tag.equals("blockspam")){//1
 				antiSpam = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.contains("ignore'&'")){//2
-				ignoreAmperstand = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			else if(tag.contains("spamresult")){//2
+				spamResultCmd = value.replace("'", "").replace("null", "").replace("/", "").trim();
+				if(!spamResultCmd.isEmpty()) spamResultCmd = '/'+spamResultCmd;
 			}
-			else if(tag.equals("spamresult")){//3
-				spamResultCmd = line.split(":")[1].trim();
-				if(!spamResultCmd.startsWith("/")) spamResultCmd = '/'+spamResultCmd;
-			}
-			else if(tag.contains("perminute")){//4
+			else if(tag.contains("perminute")){//3
 				try{maxChatsPerMinute = Integer.parseInt(value);}
 				catch(NumberFormatException ex){invalidConfig = true;}
 			}
-			else if(tag.contains("per10s")){//5
+			else if(tag.contains("per10s")){//4
 				try{maxChatsPer10s = Integer.parseInt(value);}
 				catch(NumberFormatException ex){invalidConfig = true;}
 			}
-			else if(tag.contains("persecond")){//6
+			else if(tag.contains("persecond")){//5
 				try{maxChatsPerSecond = Integer.parseInt(value);}
 				catch(NumberFormatException ex){invalidConfig = true;}
 			}
-			else if(tag.equals("sanitizechat")){//7
+			else if(tag.equals("sanitizechat")){//6
 				antiChatFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
+			else if(tag.contains("filthresult")){//7
+				filthResultCmd = value.replace("'", "").replace("null", "").replace("/", "").trim();
+				if(!filthResultCmd.isEmpty()) filthResultCmd = '/'+filthResultCmd;
 			}
 			else if(tag.equals("sanitizecommands")){//8
 				antiCmdFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
-			else if(tag.equals("sanitizesign")){//9
+			else if(tag.equals("sanitizesigntext")){//9
 				antiSignFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
 			else if(tag.contains("backwards")){//10
@@ -492,9 +479,11 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				pluginPrefix = line.split(":")[1].trim()+' ';
 			}
 			else continue;
-			settings++;
+			++settings;
 		}
 		if(settings < AVAILABLE_SETTINGS || invalidConfig){
+			getLogger().info("Only found "+settings+" out of expected "+AVAILABLE_SETTINGS+'.');
+			getLogger().info("Adding missing settings to the config");
 			writeConfig();
 		}
 	}
@@ -502,29 +491,29 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	private void writeConfig(){
 		StringBuilder config = new StringBuilder();
 		config.append("Block Spam: "); config.append(antiSpam);//1
-		config.append("\n Ignore '&' as Punctuation: "); config.append(ignoreAmperstand);//2
-		config.append("\n Spam Result Console Command: "); config.append(spamResultCmd);//3
-		config.append("\n MaxChatsPerPlayerPerMinute: "); config.append(maxChatsPerMinute );//4
-		config.append("\n MaxChatsPerPlayerPer10s: "); config.append(maxChatsPer10s);//5
-		config.append("\n MaxChatsPerPlayerPerSecond: "); config.append(maxChatsPerSecond );//6
+		config.append("\n Spam Result Console Command: "); config.append(spamResultCmd);//2
+		config.append("\n MaxChatsPerPlayerPerMinute: "); config.append(maxChatsPerMinute );//3
+		config.append("\n MaxChatsPerPlayerPer10s: "); config.append(maxChatsPer10s);//4
+		config.append("\n MaxChatsPerPlayerPerSecond: "); config.append(maxChatsPerSecond );//5
 		
-		config.append("\n\nSanitize Chat: "); config.append(antiChatFilth);//7
-		config.append("\nSanitize Commands: "); config.append(antiCmdFilth);//8
-		config.append("\nSanitize Sign Text: "); config.append(antiSignFilth);//9
+		config.append("\n\nSanitize Chat: "); config.append(antiChatFilth);//6
+		config.append("\n Filth Result Console Command: "); config.append(filthResultCmd);//17
+		config.append("\nSanitize Commands: "); config.append(antiCmdFilth);//7
+		config.append("\nSanitize Sign Text: "); config.append(antiSignFilth);//8
 		config.append("\n\n#Warning: the following configuration option can cause harmless ");
 		config.append("\n#words to be blocked if their reversed spelling matches a bad word.");
-		config.append("\nCheck words backwards in antiFilth: "); config.append(checkWordsBackwards);//10
-		config.append("\nDefault Badword Replacement: "); config.append(defaultSub);//11
+		config.append("\nCheck words backwards in antiFilth: "); config.append(checkWordsBackwards);//9
+		config.append("\nDefault Badword Replacement: "); config.append(defaultSub);//10
 					 
 		config.append("\n\nIt is generally good to disable these if you have another plugin");
 		config.append("\nthat handles sign/chat color (such as EssentialsChat)");
-		config.append("\nChat Colors: "); config.append(chatColor);//12
-		config.append("\nChat Formats: "); config.append(chatFormat);//13
-		config.append("\nSign Colors: "); config.append(signColor);//14
-		config.append("\nSign Formats: "); config.append(signFormat);//15
+		config.append("\nChat Colors: "); config.append(chatColor);//11
+		config.append("\nChat Formats: "); config.append(chatFormat);//12
+		config.append("\nSign Colors: "); config.append(signColor);//13
+		config.append("\nSign Formats: "); config.append(signFormat);//14
 		
-		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //16
-		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//17
+		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //15
+		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//16
 		
 		FileIO.saveFile("chatmanager config", config.toString());
 	}

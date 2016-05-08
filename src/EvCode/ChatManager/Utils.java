@@ -10,9 +10,29 @@ public class Utils {
 		return oldChat.replaceAll("[^a-zA-Z\\s]", "");
 	}
 	
+	/** Strip non-alphanumeric charactes, NOTE: Does not remove spaces **/
+	public String removeNonAlphanumeric(String oldChat){
+		return oldChat.replaceAll("[^a-zA-Z0-9\\s]", "");
+	}
+	
 	/** Strip all lowercase characters and punctuation **/
 	public String removeLowerCaseAndPunc(String oldChat){
 		return oldChat.replaceAll("[^A-Z\\s]", "");
+	}
+	
+	/** Strip all uppercase characters and punctuation **/
+	public String removeUpperCaseAndPunc(String oldChat){
+		return oldChat.replaceAll("[^a-z\\s]", "");
+	}
+	
+	/** Strip all lowercase characters **/
+	public String removeLowerCase(String oldChat){
+		return oldChat.replaceAll("[a-z]", "");
+	}
+	
+	/** Strip all uppercase characters **/
+	public String removeUpperCase(String oldChat){
+		return oldChat.replaceAll("[A-Z]", "");
 	}
 	
 	/** Reverse the order of chars in a string **/
@@ -30,7 +50,7 @@ public class Utils {
 		
 		StringBuilder builder = new StringBuilder();
 		for(int i = 0; i < chars.length; i++){
-			if(chars[i] == '1')builder.append('i');
+			if(chars[i] == '1' || chars[i] == '|')builder.append('L');
 			else if(chars[i] == '3')builder.append('E');
 			else if(chars[i] == '4' || chars[i] == '@')builder.append('A');
 			else if(chars[i] == '5' || chars[i] == '$')builder.append('S');

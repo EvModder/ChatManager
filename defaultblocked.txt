@@ -8,15 +8,15 @@ fucker,fucking,fucked,fuck you=>:[,fuck=crap,f u c k,fu ck,f uc k,f uck,fuc k,fu
  f-you, f that ,fck, fker , omf , f off , fuc , fuc-ing, fuc-er,f-k ,f**k,
  f-ck ,f-cker,f-cking, f*ck ,fvck,fwck, f~ck , f ing , f-er ,lmfao=lmao,
  f them , f you,gtfo, fking , f u ,dafuq,dafuc,dafuk,dafvk, fuk,facker,fack, fak , fick , fock ,
-8\=>,8\->,8\=d,8\-d,3\=>,3\->,3\=d,3\-d,
+8\=>,8->,8\=d,8-d,3\=>,3->,3\=d,3-d, o-> ,
 
 //name-calling & cursing
 idiot , id iot , idi ot ,i d i o t,faggot,fagg,fag ,bitch,btch,whore,cunt,kunt,
 retarded,retard,returd ,boi =boy ,
 kike,nigger,nigga, wop ,jap , spic ,shiz ,
 holyshit,holy shit,bullshit,shitty,shity,shit,s h i t, shi t ,sht ,sh-t, sh*it ,
-damn ,d a m n,d amn ,da mn,dam n ,
-titties,titty, tits , titz , tit , ti t , t i t ,
+damn =darn,d a m n=darn,d amn =darn,da mn,dam n =darn,
+titties,titty, tity, tits , titz , tit , ti t , t i t ,
 buttcrap,
 # crap,c r a p,cr ap,cra p, butt ,
 big dick ,dick ,d i c k, di ck, dic k, d ick ,

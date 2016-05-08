@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class FileIO {
 	public static void loadDefaultBlockedList(ChatManager plugin, List<String> wordList, Map<String, String> subList){
@@ -29,11 +28,13 @@ public class FileIO {
 			
 			for(String word : builder.toString().split(",")){
 				if(!word.trim().isEmpty()){
-					if(word.contains("=")){
-						subList.put(word.split("=")[0], word.split("=")[1]);
-						if(wordList.contains(word.split("=")[0]) == false) wordList.add(word.split("=")[0]);
+					word = word.replace("\\=", "<equals>").replace("=", "<split>").replace("<equals>", "=");
+					if(word.contains("<split>")){
+						String[] pair = word.split("<split>");
+						subList.put(pair[0].trim(), pair[1]);
+						if(!wordList.contains(pair[0])) wordList.add(pair[0]);
 					}
-					else if(wordList.contains(word) == false) wordList.add(word);
+					else if(!wordList.contains(word)) wordList.add(word);
 				}
 			}
 			
@@ -53,7 +54,7 @@ public class FileIO {
 			try{
 				//eww hardcoded text..
 				BufferedWriter writer = new BufferedWriter(new FileWriter(blockedList));
-				writer.write("thisisabadword,badword248,a@@ , word45 ,CRAPS**T,lolbutts,LMFAO=haha" +
+				writer.write("thisisabadword,badword248,a@@ , word45 ,CRAPS**T,lolbutts,LMFAO=haha,flycoder=qua-112" +
 					   "\n\n# Spaces are fine to use, but please realize that " +
 						 "\n# they will be counted as a part of a word." +
 					  "\n#\n# To set a custom replacement (sub) for a bad word, simply use" +
@@ -62,7 +63,7 @@ public class FileIO {
 					     "\n# like this:" +
 					     "\n# thisisabadword,hell=nether,ass=donkey,f***=meep,a@@,etc.." +
 					  "\n#\n# If you want to allow a word on the 'Default blocked list'," +
-					     "\n# Then put it in like this: hell=hell,crap=crap,f***=meep" +
+					     "\n# Then put it in like this: hell=hell,crap=crap," +
 					     "\n# What this does is simply \"replace\" the badword with itself" +
 					     "\n# (Note that you can also open/unzip the .jar file and directly" +
 					     "\n# edit the default list there)");
@@ -79,29 +80,30 @@ public class FileIO {
 			String line = null;
 			try{
 				while((line = reader.readLine()) != null){
-					if(!line.trim().replaceFirst("#", "//").startsWith("//")) builder.append(line);
+					builder.append(line.replace("//", "#").split("#")[0].trim());
 				}reader.close();
 			}
 			catch(IOException e){plugin.getLogger().info(e.getMessage());}
 			
 			for(String word : builder.toString().split(",")){
-				if(!word.replace(" ", "").isEmpty()){
-					if(word.contains("=")){
-						String[] pair = word.split("=");
+				if(!word.trim().isEmpty()){
+					word = word.replace("\\=", "<equals>").replace("=", "<split>").replace("<equals>", "=");
+					if(word.contains("<split>")){
+						String[] pair = word.split("<split>");
 						
 						if(pair[0].equals(pair[1]) == false){
-							subList.put(pair[0], pair[1]);
-							if(wordList.contains(pair[0]) == false) wordList.add(pair[0]);
+							subList.put(pair[0].trim(), pair[1]);
+							if(!wordList.contains(pair[0])) wordList.add(pair[0]);
 						}
 						else wordList.remove(pair[0]);//If they did "damn=damn", they want to unblock the default.
 					}
-					else if(wordList.contains(word) == false) wordList.add(word);
+					else if(!wordList.contains(word)) wordList.add(word);
 				}
 			}
 		}
 	}
 	
-	public static void loadBlockedBlockList(ChatManager plugin, Set<String> wordList){
+/*	public static void loadBlockedBlockList(ChatManager plugin, Set<String> wordList){
 		BufferedReader reader = null;
 		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked block-words list.txt"));}
 		catch(FileNotFoundException e){
@@ -134,11 +136,11 @@ public class FileIO {
 				if(word.length() > 1) wordList.add(word);
 			}
 		}
-	}
+	}*/
 	
 	public static String loadFile(String filename) {
 		BufferedReader reader = null;
-		try{reader = new BufferedReader(new FileReader(filename));}
+		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/"+filename));}
 		catch(FileNotFoundException e){
 			return "";
 		}
