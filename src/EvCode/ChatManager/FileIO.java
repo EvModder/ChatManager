@@ -31,7 +31,7 @@ public class FileIO {
 					word = word.replace("\\=", "<equals>").replace("=", "<split>").replace("<equals>", "=");
 					if(word.contains("<split>")){
 						String[] pair = word.split("<split>");
-						subList.put(pair[0].trim(), pair[1]);
+						subList.put(pair[0].trim(), pair[1].trim());
 						if(!wordList.contains(pair[0])) wordList.add(pair[0]);
 					}
 					else if(!wordList.contains(word)) wordList.add(word);
@@ -80,7 +80,8 @@ public class FileIO {
 			String line = null;
 			try{
 				while((line = reader.readLine()) != null){
-					builder.append(line.replace("//", "#").split("#")[0].trim());
+					line = line.replace("//", "#").trim();
+					if(!line.startsWith("#")) builder.append(line);
 				}reader.close();
 			}
 			catch(IOException e){plugin.getLogger().info(e.getMessage());}
@@ -92,7 +93,7 @@ public class FileIO {
 						String[] pair = word.split("<split>");
 						
 						if(pair[0].equals(pair[1]) == false){
-							subList.put(pair[0].trim(), pair[1]);
+							subList.put(pair[0].trim(), pair[1].trim());
 							if(!wordList.contains(pair[0])) wordList.add(pair[0]);
 						}
 						else wordList.remove(pair[0]);//If they did "damn=damn", they want to unblock the default.

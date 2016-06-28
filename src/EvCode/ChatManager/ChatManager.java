@@ -39,7 +39,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 2;
 	private Map<UUID, List<Integer>> lastChats;
 	
-	
+	//Feature TODO: Word variations, ex: "..., ass { @ss,azz,a s s, a$$ ,pussy}=cat,..."
 	/** Anti-Filth configuration **/
 	private String filthResultCmd = "";
 	private List<String> badWords;
@@ -201,7 +201,6 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			if(hasBadWords(newChat.toLowerCase())){
 				// TODO: make a substitution algorithm
 				chat = (defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, chat.length()/2 +1);
-				getLogger().info("Original Chat: "+newChat);
 			}
 			
 			if(!chat.equals(' '+event.getMessage()+' ')){// message has changed
@@ -265,7 +264,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			}
 			if(inLastSecond > maxChatsPerSecond || inLast10s > maxChatsPer10s || inLastMinute > maxChatsPerMinute){
 				event.getPlayer().sendMessage(pluginPrefix + "Please slow down chat a little.");
-				
+				getLogger().info("in-last-s: "+inLastSecond+" in-last-10-s: "+inLast10s+" in-last-m: "+inLastMinute);
 				//If they continue to spam after the warning...
 				if(inLastSecond > maxChatsPerSecond+2 || inLast10s > maxChatsPer10s+3 || inLastMinute > maxChatsPerMinute+5){
 //					getServer().dispatchCommand(getServer().getConsoleSender(), spamResultCmd);
@@ -362,13 +361,22 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	public String filterOutBadWords(String chat){
 		String lowerCaseChat = chat.toLowerCase();
 		for(String badword : badWords){
-			if(chat.contains(badword)) chat = chat.replace(badword.trim(),
-					(subList.containsKey(badword.trim())) ? subList.get(badword.trim()) :
-					((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
-			
-			else if(lowerCaseChat.contains(badword)) chat = utils.replaceIgnoreCase(chat, badword.trim(),
-					(subList.containsKey(badword.trim())) ? subList.get(badword.trim()) :
-					((defaultSub.length() != 1) ? defaultSub : StringUtils.repeat(defaultSub, badword.trim().length()-1)));
+			if(chat.contains(badword)){
+				String trimmed = badword.trim();
+				chat = chat.replace(badword,
+					(badword.startsWith(" ") ? " " : "") +
+					(subList.containsKey(trimmed) ? subList.get(trimmed) :
+					(defaultSub.length() != 1 ? defaultSub : StringUtils.repeat(defaultSub, trimmed.length()-1)) +
+					(badword.endsWith(" ") ? " " : "")));
+			}
+			else if(lowerCaseChat.contains(badword)){
+				String trimmed = badword.trim();
+				chat = utils.replaceIgnoreCase(chat, badword,
+					(badword.startsWith(" ") ? " " : "") +
+					(subList.containsKey(trimmed) ? subList.get(trimmed) :
+					(defaultSub.length() != 1 ? defaultSub : StringUtils.repeat(defaultSub, trimmed.length()-1)) +
+					(badword.endsWith(" ") ? " " : "")));
+			}
 		}
 		return chat;
 	}
