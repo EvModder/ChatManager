@@ -421,7 +421,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	}
 	
 	private void loadConfig(){
-		String[] lines = FileIO.loadFile("chatmanager config.txt").split("\n");
+		String[] lines = FileIO.loadFile("config-chatmanager.yml").split("\n");
 		int settings = 0;
 		boolean invalidConfig = false;
 		
@@ -523,6 +523,6 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //15
 		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//16
 		
-		FileIO.saveFile("chatmanager config", config.toString());
+		FileIO.saveFile("config-chatmanager.yml", config.toString());
 	}
 }

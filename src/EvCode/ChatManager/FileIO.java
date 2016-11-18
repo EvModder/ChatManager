@@ -164,7 +164,7 @@ public class FileIO {
 		
 		//Create the file
 		try{
-			BufferedWriter writer = new BufferedWriter(new FileWriter("./plugins/EvFolder/"+filename+".txt"));
+			BufferedWriter writer = new BufferedWriter(new FileWriter("./plugins/EvFolder/"+filename));
 			writer.write(content); writer.close();
 			return true;
 		}
