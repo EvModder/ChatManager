@@ -103,8 +103,8 @@ public class Utils {
 		
 		for(char color : chatColors){
 			if(str.contains("&") == false) break;
-			if(str.contains("&"+color) && (VaultHook.hasPermission(player, "evp.evcm.chatcolor."+color)
-					|| VaultHook.hasPermission(player, "evp.evcm.chatcolor."+ChatColor.getByChar(color)))){
+			if(str.contains("&"+color) && (VaultHook.hasPermission(player, "chatmanager.color."+color)
+					|| VaultHook.hasPermission(player, "chatmanager.color."+ChatColor.getByChar(color).name().toLowerCase()))){
 				str = str.replace("&"+color, "§"+color);
 			}
 		}
@@ -118,8 +118,8 @@ public class Utils {
 		
 		for(char format : chatColors){
 			if(str.contains("&") == false) break;
-			if(str.contains("&"+format) && (VaultHook.hasPermission(player, "evp.evcm.chatformat."+format)
-					|| VaultHook.hasPermission(player, "evp.evcm.chatformat."+ChatColor.getByChar(format)))){
+			if(str.contains("&"+format) && (VaultHook.hasPermission(player, "chatmanager.format."+format)
+					|| VaultHook.hasPermission(player, "chatmanager.format."+ChatColor.getByChar(format).name().toLowerCase()))){
 				str = str.replace("&"+format, "§"+format);
 			}
 		}

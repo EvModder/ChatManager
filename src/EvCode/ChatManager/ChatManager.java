@@ -36,7 +36,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	/** Anti-Spam configuration **/
 	private String spamResultCmd = "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P";
-	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 2;
+	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 4;
 	private Map<UUID, List<Integer>> lastChats;
 	
 	//Feature TODO: Word variations, ex: "..., ass { @ss,azz,a s s, a$$ ,pussy}=cat,..."
@@ -60,7 +60,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		
 		/** Check for an update **/
 		if(autoUpdate) new Updater(this, projectID, this.getFile(), Updater.UpdateType.DEFAULT, true);
-		else new Updater(this, projectID, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, true);
+		//else new Updater(this, projectID, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, true);
 		
 		/** Initialize variables **/
 		lastChats = new HashMap<UUID, List<Integer>>();
@@ -104,10 +104,11 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String args[]){
-		if(cmd.getName().equalsIgnoreCase("evcm") && args.length > 0){
-			args[0] = args[0].toLowerCase();
+		if(cmd.getName().equals("chatm")){
+			if(args.length == 0) args = new String[]{"help"};
+			else args[0] = args[0].toLowerCase();
 			//=================================================================================================================
-			if(args[0].contains("spam") && VaultHook.hasPermission(sender, "evp.chatmanager.togglespam")){
+			if(args[0].contains("spam") && VaultHook.hasPermission(sender, "chatmanager.togglespam")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) antiSpam = true;
 					else antiSpam = false;
@@ -117,7 +118,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				if(antiSpam) sender.sendMessage("SpamGuard Enabled.");
 				else sender.sendMessage("SpamGuard Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
-			else if(args[0].contains("filth") && VaultHook.hasPermission(sender, "evp.chatmanager.togglefilth")){
+			else if(args[0].contains("filth") && VaultHook.hasPermission(sender, "chatmanager.togglefilth")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) antiChatFilth = true;
 					else antiChatFilth = false;
@@ -128,7 +129,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				else sender.sendMessage("FilthGuard Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
 			//~ ~ ~ ~ ~ ~ ~ ~
-			else if(args[0].contains("color") && VaultHook.hasPermission(sender, "evp.chatmanager.togglecolor")){
+			else if(args[0].contains("color") && VaultHook.hasPermission(sender, "chatmanager.togglecolor")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) chatColor = true;
 					else chatColor = false;
@@ -138,7 +139,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				if(chatColor) sender.sendMessage("Chat-Colors Enabled.");
 				else sender.sendMessage("Chat-Colors Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
-			else if(args[0].contains("format") && VaultHook.hasPermission(sender, "evp.chatmanager.toggleformat")){
+			else if(args[0].contains("format") && VaultHook.hasPermission(sender, "chatmanager.toggleformat")){
 				if(args.length >= 2){
 					if(args[1].equalsIgnoreCase("on")) chatFormat = true;
 					else chatFormat = false;
@@ -149,23 +150,23 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				else sender.sendMessage("Chat-Formats Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
 			else if(args[0].equals("help") || args[0].equals("list") || args[0].equals("info") || args[0].equals("?")){
-				sender.sendMessage("§a--- §6< §2§lEvCM Commands §6> §a---\n" +
+				sender.sendMessage("§a----- §6< §2§lChatManager Commands §6> §a-----\n" +
 							"§21§7. /evcm anti-spam [on/off/(toggle)]\n" +
 							"§22§7. /evcm anti-filth [on/off/(toggle)]\n" +
 							"§23§7. /evcm chatcolor [on/off/(toggle)]\n" +
 							"§24§7. /evcm chatformat [on/off/(toggle)]\n" +
 							"§24§7. /evcm reload   (or /evcm config)\n" +
-							"§7§l----------------------------------");
+							"§7§l------------------------------------");
 			}
 			else if((args[0].equals("reload") || args[0].equals("load") || args[0].equals("config"))
-					&& VaultHook.hasPermission(sender, "evp.chatmanager.reload")){
+					&& VaultHook.hasPermission(sender, "chatmanager.reload")){
 				HandlerList.unregisterAll((Plugin)this);
 				onEnable();
 				sender.sendMessage("§aFiles Reloaded!");
 			}
 			else{
 				sender.sendMessage("§Unknown evcm command!");
-				sender.sendMessage("§7Type §5/cm ?§7 for a list of ChatManager commands.");
+				sender.sendMessage("§7Type §5/chatm ?§7 for a list of ChatManager commands.");
 				
 			}
 			return true;
@@ -183,7 +184,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		String pName = event.getPlayer().getName();
 		
 		//-------------------------------------------------------------------------
-		if(antiChatFilth && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatfilter.exempt")){
+		if(antiChatFilth && !VaultHook.hasPermission(event.getPlayer(), "chatmanager.chatfilter.exempt")){
 			chat = filterOutBadWords(chat);
 			
 			String dePuncChat = utils.removePunctuation(chat);
@@ -217,32 +218,15 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		//-------------------------------------------------------------------------
 		
-		if(chatFormat && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatformat")){
+		if(chatFormat && VaultHook.hasPermission(event.getPlayer(), "chatmanager.format")){
 			chat = utils.determineFormatsByPermission(chat, event.getPlayer());
-			
-			if(chatColor && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatcolor")){
-				chat = utils.determineColorsByPermission(chat, event.getPlayer());
-			}
-			else{
-				// Look for a default message color, and if found, prevent them from changing the color with &f or &r
-				String totalMessage = event.getFormat()+chat;
-				int lastColorIndex = totalMessage.substring(0, totalMessage.length()-1).lastIndexOf('§');
-				ChatColor lastColor = null;
-				
-				while(lastColorIndex != -1 && !(lastColor = ChatColor.getByChar(totalMessage.charAt(lastColorIndex+1))).isColor()){
-					lastColorIndex = totalMessage.lastIndexOf('§', lastColorIndex);
-				}
-				if(lastColorIndex != -1){
-					chat = chat.replace("§f", "§r").replace("§r", lastColor.toString());
-				}
-			}
 		}
-		else if(chatColor && VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.chatcolor")){
+		if(chatColor && VaultHook.hasPermission(event.getPlayer(), "chatmanager.color")){
 			chat = utils.determineColorsByPermission(chat, event.getPlayer());
 		}
 		//-------------------------------------------------------------------------
 		
-		if(antiSpam && !VaultHook.hasPermission(event.getPlayer(), "evp.chatmanager.spamfilter.exempt")){
+		if(antiSpam && !VaultHook.hasPermission(event.getPlayer(), "chatmanager.spamfilter.exempt")){
 			if(lastChats.containsKey(event.getPlayer().getUniqueId())){
 				lastChats.get(event.getPlayer().getUniqueId()).add(0);
 			}
@@ -307,7 +291,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	@EventHandler
 	public void preCommand(PlayerCommandPreprocessEvent evt){
 		if(evt.getMessage().contains(" ") && antiCmdFilth && !evt.isCancelled()
-				&& !VaultHook.hasPermission(evt.getPlayer(), "evp.chatmanager.chatfilter.exempt")){
+				&& !VaultHook.hasPermission(evt.getPlayer(), "chatmanager.chatfilter.exempt")){
 			StringBuilder builder = new StringBuilder(' ');
 			String[] args = evt.getMessage().split(" ");
 			for(int i = 1; i < args.length; ++i){
@@ -327,7 +311,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void signPlaceEvent(SignChangeEvent evt){
-		if(!antiSignFilth || evt.isCancelled() || VaultHook.hasPermission(evt.getPlayer(), "evp.chatmanager.chatfilter.exempt")) return;
+		if(!antiSignFilth || evt.isCancelled() || VaultHook.hasPermission(evt.getPlayer(), "chatmanager.chatfilter.exempt")) return;
 		
 		StringBuilder builder = new StringBuilder(' ');
 		builder.append(evt.getLine(0)); builder.append(" \n ");
@@ -421,7 +405,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	}
 	
 	private void loadConfig(){
-		String[] lines = FileIO.loadFile("config-chatmanager.yml").split("\n");
+		String[] lines = FileIO.loadFile("config-ChatManager.yml").split("\n");
 		int settings = 0;
 		boolean invalidConfig = false;
 		
@@ -523,6 +507,6 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //15
 		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//16
 		
-		FileIO.saveFile("config-chatmanager.yml", config.toString());
+		FileIO.saveFile("config-ChatManager.yml", config.toString());
 	}
 }
