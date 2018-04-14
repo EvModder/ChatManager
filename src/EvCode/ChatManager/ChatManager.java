@@ -31,50 +31,49 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	private boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, removeCaps = true;
 	private boolean chatColor = true, chatFormat = true, signColor = true, signFormat = true;
 	private boolean antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
-	private String pluginPrefix = "§3<§aC§3>§f ";
-	
-	
+	private String pluginPrefix = "Â§3<Â§aCÂ§3>Â§f ";
+
 	/** Anti-Spam configuration **/
-	private String spamResultCmd = "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P";
+	private String spamResultCmd = "kick %name% Â§cReceived TMC/TMS from client\\nÂ§fEither lag or spam... :P";
 	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 4;
 	private Map<UUID, List<Integer>> lastChats;
-	
+
 	//Feature TODO: Word variations, ex: "..., ass { @ss,azz,a s s, a$$ ,pussy}=cat,..."
 	/** Anti-Filth configuration **/
 	private String filthResultCmd = "";
 	private List<String> badWords;
 	private int minWordLengthToCheckBackwards = 4;
-	
+
 	private Map<String, String> subList;
 	private String defaultSub = "[-]";
 	private Utils utils = new Utils();
-	
+
 	/** If fewer/more then this number are available, such as after a plugin update,
 	 ** then the server's copy of the config will be updated. */
 	final int AVAILABLE_SETTINGS = 17;
-	
+
 	final int projectID = 63180;//<-- Can be found at: https://api.curseforge.com/servermods/projects?search=ev-cleanchat
 	@Override public void onEnable(){
 		/** Load config **/
 		loadConfig();
-		
+
 		/** Check for an update **/
 		if(autoUpdate) new Updater(this, projectID, this.getFile(), Updater.UpdateType.DEFAULT, true);
 		//else new Updater(this, projectID, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, true);
-		
+
 		/** Initialize variables **/
 		lastChats = new HashMap<UUID, List<Integer>>();
 		badWords = new ArrayList<String>();
 		subList = new HashMap<String, String>();
-		
+
 		/** Load word lists **/
 		FileIO.loadDefaultBlockedList(this, badWords, subList);
 		FileIO.loadCustomBlockedList(this, badWords, subList);
-		
+
 		if(checkWordsBackwards){
 			Set<String> badWordsBackwards = new HashSet<String>();
 			String newBadWord;
-			
+
 			for(String badword : badWords){
 				if(!badword.trim().contains(" ") && badword.length() >= minWordLengthToCheckBackwards
 						&& badword.equals(utils.removePunctuation(badword)))
@@ -95,14 +94,14 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			if(subList.get(badword).equals(badword)) subList.put(badword, null);
 		}
 		subList.remove(null);
-		
+
 		/** Check for Vault **/
 		new VaultHook(this);
-		
+
 		/** Register listener events with the server **/
 		getServer().getPluginManager().registerEvents(this, this);
 	}
-	
+
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String args[]){
 		if(cmd.getName().equals("chatm")){
 			if(args.length == 0) args = new String[]{"help"};
@@ -150,23 +149,23 @@ public final class ChatManager extends JavaPlugin implements Listener{
 				else sender.sendMessage("Chat-Formats Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
 			else if(args[0].equals("help") || args[0].equals("list") || args[0].equals("info") || args[0].equals("?")){
-				sender.sendMessage("§a----- §6< §2§lChatManager Commands §6> §a-----\n" +
-							"§21§7. /evcm anti-spam [on/off/(toggle)]\n" +
-							"§22§7. /evcm anti-filth [on/off/(toggle)]\n" +
-							"§23§7. /evcm chatcolor [on/off/(toggle)]\n" +
-							"§24§7. /evcm chatformat [on/off/(toggle)]\n" +
-							"§24§7. /evcm reload   (or /evcm config)\n" +
-							"§7§l------------------------------------");
+				sender.sendMessage("Â§a----- Â§6< Â§2Â§lChatManager Commands Â§6> Â§a-----\n" +
+							"Â§21Â§7. /evcm anti-spam [on/off/(toggle)]\n" +
+							"Â§22Â§7. /evcm anti-filth [on/off/(toggle)]\n" +
+							"Â§23Â§7. /evcm chatcolor [on/off/(toggle)]\n" +
+							"Â§24Â§7. /evcm chatformat [on/off/(toggle)]\n" +
+							"Â§24Â§7. /evcm reload   (or /evcm config)\n" +
+							"Â§7Â§l------------------------------------");
 			}
 			else if((args[0].equals("reload") || args[0].equals("load") || args[0].equals("config"))
 					&& VaultHook.hasPermission(sender, "chatmanager.reload")){
 				HandlerList.unregisterAll((Plugin)this);
 				onEnable();
-				sender.sendMessage("§aFiles Reloaded!");
+				sender.sendMessage("Â§aFiles Reloaded!");
 			}
 			else{
-				sender.sendMessage("§Unknown evcm command!");
-				sender.sendMessage("§7Type §5/chatm ?§7 for a list of ChatManager commands.");
+				sender.sendMessage("Â§Unknown evcm command!");
+				sender.sendMessage("Â§7Type Â§5/chatm ?Â§7 for a list of ChatManager commands.");
 				
 			}
 			return true;
@@ -266,13 +265,13 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
 			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChatLength)){
 				chat = noPuncChat;
-				event.getPlayer().sendMessage(pluginPrefix+"§cSpam Detect. Perhaps try with less punctuation.");
+				event.getPlayer().sendMessage(pluginPrefix+"Â§cSpam Detect. Perhaps try with less punctuation.");
 			}
 			
 			//If more then 55% of the chat is uppercase, make the chat lowercase
 			if(removeCaps && noPuncChatLength > 13 && chatLength*.55 < noPuncChat.replaceAll("[^A-Z]", "").length()){
 				chat = chat.toLowerCase();
-				event.getPlayer().sendMessage(pluginPrefix+"§cPlease don't shout. My ears are hurting xP");
+				event.getPlayer().sendMessage(pluginPrefix+"Â§cPlease don't shout. My ears are hurting xP");
 			}
 			
 			//Keep players from repeating messages --------------------------------------------------------------
@@ -305,7 +304,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			if(hasBadWords(chat)) evt.setCancelled(true);
 			else if(hasBadWords(utils.combineRepeatedChars(chat))) evt.setCancelled(true);
 			else return;
-			evt.getPlayer().sendMessage(pluginPrefix+"§7Really now?");
+			evt.getPlayer().sendMessage(pluginPrefix+"Â§7Really now?");
 		}
 	}
 	
@@ -334,14 +333,14 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			else if(hasBadWords(utils.combineRepeatedChars(filteredText))) evt.setCancelled(true);
 			else return;
 		}
-		evt.getPlayer().sendMessage(pluginPrefix+"§7Really now?");
+		evt.getPlayer().sendMessage(pluginPrefix+"Â§7Really now?");
 	}
-	
+
 	public boolean hasBadWords(String chat){
 		for(String badword : badWords) if(chat.contains(badword)) return true;
 		return false;
 	}
-	
+
 	public String filterOutBadWords(String chat){
 		String lowerCaseChat = chat.toLowerCase();
 		for(String badword : badWords){
@@ -364,24 +363,24 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		}
 		return chat;
 	}
-	
+
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent evt){
 		lastChats.remove(evt.getPlayer().getUniqueId());
 	}
-	
+
 	private boolean alreadyRunning;
 	private void updateLastChats(boolean disable){
 		if(disable){alreadyRunning = false; return;}
 		if(alreadyRunning) return;
 		alreadyRunning = true;
-		
+
 		new BukkitRunnable(){
 			@Override public void run(){
 				boolean remainingChats = false;
 				for(UUID uuid : lastChats.keySet()){
 					List<Integer> chats = lastChats.get(uuid);
-					
+
 					ListIterator<Integer> i = chats.listIterator();
 					while(i.hasNext()){
 						Integer timeStamp = i.next();
@@ -396,24 +395,24 @@ public final class ChatManager extends JavaPlugin implements Listener{
 					lastChats.put(uuid, chats);
 					if(!chats.isEmpty()) remainingChats = true;
 				}
-				
+
 				if(remainingChats){
 					updateLastChats(alreadyRunning = false);
 				}
 			}
 		}.runTaskLater(this, 20);// 1 second
 	}
-	
+
 	private void loadConfig(){
 		String[] lines = FileIO.loadFile("config-ChatManager.yml").split("\n");
 		int settings = 0;
 		boolean invalidConfig = false;
-		
+
 		for(String line : lines){
 			if(line.contains(":") == false || line.trim().replaceFirst("//", "#").startsWith("#")) continue;
 			String[] split = line.toLowerCase().split(":");
 			String tag = split[0].replace(" ", ""); String value = split[1].trim();
-			
+
 			if(tag.equals("blockspam")){//1
 				antiSpam = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
@@ -479,7 +478,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			writeConfig();
 		}
 	}
-	
+
 	private void writeConfig(){
 		StringBuilder config = new StringBuilder();
 		config.append("Block Spam: "); config.append(antiSpam);//1
@@ -487,7 +486,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		config.append("\n MaxChatsPerPlayerPerMinute: "); config.append(maxChatsPerMinute );//3
 		config.append("\n MaxChatsPerPlayerPer10s: "); config.append(maxChatsPer10s);//4
 		config.append("\n MaxChatsPerPlayerPerSecond: "); config.append(maxChatsPerSecond );//5
-		
+
 		config.append("\n\nSanitize Chat: "); config.append(antiChatFilth);//6
 		config.append("\n Filth Result Console Command: "); config.append(filthResultCmd);//17
 		config.append("\nSanitize Commands: "); config.append(antiCmdFilth);//7
@@ -496,17 +495,17 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		config.append("\n#words to be blocked if their reversed spelling matches a bad word.");
 		config.append("\nCheck words backwards in antiFilth: "); config.append(checkWordsBackwards);//9
 		config.append("\nDefault Badword Replacement: "); config.append(defaultSub);//10
-					 
+
 		config.append("\n\nIt is generally good to disable these if you have another plugin");
 		config.append("\nthat handles sign/chat color (such as EssentialsChat)");
 		config.append("\nChat Colors: "); config.append(chatColor);//11
 		config.append("\nChat Formats: "); config.append(chatFormat);//12
 		config.append("\nSign Colors: "); config.append(signColor);//13
 		config.append("\nSign Formats: "); config.append(signFormat);//14
-		
+
 		config.append("\n\nAutomatic update check: "); config.append(autoUpdate); //15
 		config.append("\nPlugin Prefix (before plugin->player messages): "); config.append(pluginPrefix);//16
-		
+
 		FileIO.saveFile("config-ChatManager.yml", config.toString());
 	}
 }
