@@ -33,12 +33,12 @@
 //	/** Config options **/
 //	boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, color = true, format = true, removeCaps = true, fixGrammer = false;
 //	boolean ignoreAmperstand = true, antiSignFilth = true, checkWordsBackwards = true, blockBlockWords = false, autoUpdate = true;
-//	private String pluginPrefix = "§3<§aC§3>§f ";
-////	final String nickPrefix = "˜";
+//	private String pluginPrefix = "ï¿½3<ï¿½aCï¿½3>ï¿½f ";
+////	final String nickPrefix = "ï¿½";
 //	
 //	
 //	/** Anti-Spam configuration **/
-//	private String spamResultCmd = "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P";
+//	private String spamResultCmd = "kick %name% ï¿½cReceived TMC/TMS from client\\nï¿½fEither lag or spam... :P";
 //	private int maxChatsPerMinute = 35, maxChatsPer10s = 15, maxChatsPerSecond = 2;
 //	private Map<UUID, List<Integer>> lastChats;
 //	
@@ -149,22 +149,22 @@
 //				}
 //			}//-----------------------------------------------------------------------------------------------------------
 //			else if(args[0].equals("help") || args[0].equals("list") || args[0].equals("info")){
-//				sender.sendMessage("§a--- §6< §2§lEvCM Commands §6> §a---\n" +
-//							"§21§7. /evcm anti-spam [on/off/(toggle)]\n" +
-//							"§22§7. /evcm anti-filth [on/off/(toggle)]\n" +
-//							"§23§7. /evcm anti-color [on/off/(toggle)]\n" +
-//							"§24§7. /evcm anti-format [on/off/(toggle)]\n" +
-//							"§24§7. /evcm reload   (or /evcm config)\n" +
-//							"§7§l----------------------------------");
+//				sender.sendMessage("ï¿½a--- ï¿½6< ï¿½2ï¿½lEvCM Commands ï¿½6> ï¿½a---\n" +
+//							"ï¿½21ï¿½7. /evcm anti-spam [on/off/(toggle)]\n" +
+//							"ï¿½22ï¿½7. /evcm anti-filth [on/off/(toggle)]\n" +
+//							"ï¿½23ï¿½7. /evcm anti-color [on/off/(toggle)]\n" +
+//							"ï¿½24ï¿½7. /evcm anti-format [on/off/(toggle)]\n" +
+//							"ï¿½24ï¿½7. /evcm reload   (or /evcm config)\n" +
+//							"ï¿½7ï¿½l----------------------------------");
 //			}
 //			else if((args[0].equals("reload") || args[0].equals("load") || args[0].equals("config"))
 //					&& sender.hasPermission("evp.evcm.reload")){
 //				onEnable();
-//				sender.sendMessage("§aFiles Reloaded!");
+//				sender.sendMessage("ï¿½aFiles Reloaded!");
 //			}
 //			else{
-//				sender.sendMessage("§Unknown evcm command!");
-//				sender.sendMessage("§7Type §5/evcm help§7 for a list of ChatManager commands.");
+//				sender.sendMessage("ï¿½Unknown evcm command!");
+//				sender.sendMessage("ï¿½7Type ï¿½5/evcm helpï¿½7 for a list of ChatManager commands.");
 //				
 //			}
 //			return true;
@@ -270,13 +270,13 @@
 //			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
 //			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChat.length())){
 //				chat = noPuncChat;
-//				event.getPlayer().sendMessage(pluginPrefix+"§cSpam Detect. Perhaps try with less punctuation.");
+//				event.getPlayer().sendMessage(pluginPrefix+"ï¿½cSpam Detect. Perhaps try with less punctuation.");
 //			}
 //			
 //			//If more then 55% of the chat is uppercase, make the chat lowercase
 //			if(removeCaps && noPuncChat.length() > 13 && chatLength*.55 < noPuncChat.replaceAll("[^A-Z]", "").length()){
 //				chat = chat.toLowerCase();
-//				event.getPlayer().sendMessage(pluginPrefix+"§cPlease don't shout. My ears are hurting xP");
+//				event.getPlayer().sendMessage(pluginPrefix+"ï¿½cPlease don't shout. My ears are hurting xP");
 //			}
 //		}
 //		if(fixGrammer){
@@ -287,15 +287,15 @@
 //		
 //		if(color && event.getPlayer().hasPermission("evp.evcm.chatcolor")){
 //			chat = chat
-//				.replace("&1", "§1").replace("&2", "§2").replace("&3", "§3")
-//				.replace("&4", "§4").replace("&5", "§5").replace("&6", "§6")
-//				.replace("&7", "§7").replace("&8", "§8").replace("&9", "§9")
-//				.replace("&a", "§a").replace("&b", "§b").replace("&c", "§c")
-//				.replace("&d", "§d").replace("&e", "§e").replace("&f", "§f");
+//				.replace("&1", "ï¿½1").replace("&2", "ï¿½2").replace("&3", "ï¿½3")
+//				.replace("&4", "ï¿½4").replace("&5", "ï¿½5").replace("&6", "ï¿½6")
+//				.replace("&7", "ï¿½7").replace("&8", "ï¿½8").replace("&9", "ï¿½9")
+//				.replace("&a", "ï¿½a").replace("&b", "ï¿½b").replace("&c", "ï¿½c")
+//				.replace("&d", "ï¿½d").replace("&e", "ï¿½e").replace("&f", "ï¿½f");
 //		}
 //		
 //		if(format && event.getPlayer().hasPermission("evp.evcm.chatformat")){
-//			chat = chat.replace("&l", "§l").replace("&m", "§m").replace("&n", "§n").replace("&o", "§o").replace("&r", "§r");
+//			chat = chat.replace("&l", "ï¿½l").replace("&m", "ï¿½m").replace("&n", "ï¿½n").replace("&o", "ï¿½o").replace("&r", "ï¿½r");
 //		}
 //		
 //		chat = chat.trim();
@@ -320,7 +320,7 @@
 //				else if(hasBadWords(utils.combineRepeatedChars(chat))) evt.setCancelled(true);
 //				else return;
 //			}
-//			evt.getPlayer().sendMessage("§7Really now?");
+//			evt.getPlayer().sendMessage("ï¿½7Really now?");
 //		}
 //	}
 //	
@@ -349,7 +349,7 @@
 //			else if(hasBadWords(utils.combineRepeatedChars(filteredText))) evt.setCancelled(true);
 //			else return;
 //		}
-//		evt.getPlayer().sendMessage(pluginPrefix+"§7Really now?");
+//		evt.getPlayer().sendMessage(pluginPrefix+"ï¿½7Really now?");
 //	}
 //	
 //	public boolean hasBadWords(String chat){
