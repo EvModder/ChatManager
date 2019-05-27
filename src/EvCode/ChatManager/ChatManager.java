@@ -28,7 +28,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
-	private boolean antiSpam = true, antiChatFilth = true, antiCmdFilth, removeCaps = true;
+	private boolean antiSpam = false, antiChatFilth = true, antiCmdFilth, removeCaps = true;
 	private boolean chatColor = true, chatFormat = true, signColor = true, signFormat = true;
 	private boolean antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
 	private String pluginPrefix = "§3<§aC§3>§f ";
