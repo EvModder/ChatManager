@@ -15,12 +15,12 @@ idiot , id iot , idi ot ,i d i o t,faggot,fagg,fag ,bitch,btch,whore,cunt,kunt,
 retarded,retard,returd ,boi =boy ,
 kike,nigger,nigga, wop ,jap , spic ,shiz ,
 holyshit,holy shit,bullshit=cowpatty,shitty,shity,shit,s h i t, shi t ,sht ,sh-t, sh*it ,
-damn =darn,d a m n=darn,d amn =darn,da mn,dam n =darn,
+goddamn =goshdarn ,god damn =gosh darn ,damn =darn ,d a m n=darn,d amn =darn ,da mn,dam n =darn,
 titties,titty, tity, tits , titz , tit , ti t , t i t ,
 buttcrap,
 # crap,c r a p,cr ap,cra p, butt ,
 big dick ,dick ,d i c k, di ck, dic k, d ick ,
-penis ,p e n i s, pe nis , p enis , peni s , sex , anus , s ex , sehx ,
+penis ,p e n i s, pe nis , p enis , peni s , sex , s ex , sehx ,
 
 //Words that are unatractive in CAPS
-POOPY,POOP, PEE , FART,PEEPEE,BUTTCRACK, BUTT ,URINE,HELL
+POOPY,POOP, PEE , FART,PEEPEE,BUTTCRACK, BUTT , ANUS , ANAL ,URINE
