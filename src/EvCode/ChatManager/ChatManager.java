@@ -409,9 +409,10 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		boolean invalidConfig = false;
 
 		for(String line : lines){
-			if(line.contains(":") == false || line.trim().replaceFirst("//", "#").startsWith("#")) continue;
+			if(!line.contains(":")) continue;
 			String[] split = line.toLowerCase().split(":");
-			String tag = split[0].replace(" ", ""); String value = split[1].trim();
+			String tag = split[0].replace(" ", "");
+			String value = split[1].trim();
 
 			if(tag.equals("blockspam")){//1
 				antiSpam = (value.equals("true") || value.equals("yes") || value.equals("yup"));
