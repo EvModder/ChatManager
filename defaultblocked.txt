@@ -4,7 +4,7 @@ badass,halfass, ass , a s s , as s , a ss , a@@ , a @@ , a** ,
 
 //Variations of the f-word
 fucker,fucking,fucked,fuck you=>:[,fuck,f u c k,fu ck,f uc k,f uck,fuc k,fuuu ,
- fk ,fuc ,fuk ,wtf , stfu ,omfg,fml,f**,f--k, f it , f you, f-ing , f-er ,
+ fk ,fuc ,fuk ,wtf =wth, stfu ,omfg,fml,f**,f--k, f it , f you, f-ing , f-er ,
  f-you, f that ,fck, fker , omf , f off , fuc , fuc-ing, fuc-er,f-k ,f**k,
  f-ck ,f-cker,f-cking, f*ck ,fvck,fwck, f~ck , f ing , f-er ,lmfao=lmao,
  f them , f you,gtfo, fking , f u ,dafuq,dafuc,dafuk,dafvk, fuk,facker,fack, fak , fick , fock ,
@@ -12,9 +12,9 @@ fucker,fucking,fucked,fuck you=>:[,fuck,f u c k,fu ck,f uc k,f uck,fuc k,fuuu ,
 
 //name-calling & cursing
 idiot , id iot , idi ot ,i d i o t,faggot,fagg,fag ,bitch,btch,whore,cunt,kunt,
-retarded,retard,returd ,boi =boy ,
+retarded,retard,returd ,
 kike,nigger,nigga, wop ,jap , spic ,shiz ,
-holyshit,holy shit,bullshit=cowpatty,shitty,shity,shit,s h i t, shi t ,sht ,sh-t, sh*it ,
+holyshit,holy shit,bullshit=cowpatty,shitty,shity,shit=crap,s h i t, shi t ,sht ,sh-t, sh*it ,
 god damnit=gosh darnit,goddamnit=goshdarnit,goddamn =goshdarn ,god damn =gosh darn ,
 damn =darn ,d a m n=darn,d amn =darn ,da mn,dam n =darn,
 titties,titty, tity, tits , titz , tit , ti t , t i t ,

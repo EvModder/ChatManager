@@ -47,10 +47,10 @@ public class FileIO {
 	
 	public static void loadCustomBlockedList(ChatManager plugin, List<String> wordList, Map<String, String> subList){
 		BufferedReader reader = null;
-		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked words list.txt"));}
+		try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked-words.txt"));}
 		catch(FileNotFoundException e){
 			//Create the file
-			File blockedList = new File("./plugins/EvFolder/blocked words list.txt");
+			File blockedList = new File("./plugins/EvFolder/blocked-words.txt");
 			try{
 				//eww hardcoded text..
 				BufferedWriter writer = new BufferedWriter(new FileWriter(blockedList));
@@ -72,7 +72,7 @@ public class FileIO {
 			}
 			catch(IOException e1){plugin.getLogger().info(e1.getStackTrace().toString());}
 			//Attempt again to load the file
-			try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked words list.txt"));}
+			try{reader = new BufferedReader(new FileReader("./plugins/EvFolder/blocked-words.txt"));}
 			catch(FileNotFoundException e2){plugin.getLogger().info(e2.getStackTrace().toString());reader = null;}
 		}
 		if(reader != null){

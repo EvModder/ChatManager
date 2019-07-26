@@ -79,21 +79,21 @@ public class Utils {
 	/** Decipher colors in a string **/
 	public String determineColors(String str){
 		return str
-			.replace("&1", "�1").replace("&2", "�2").replace("&3", "�3")
-			.replace("&4", "�4").replace("&5", "�5").replace("&6", "�6")
-			.replace("&7", "�7").replace("&8", "�8").replace("&9", "�9")
-			.replace("&0", "�0").replace("&r", "�r")
-			.replace("&a", "�a").replace("&b", "�b").replace("&c", "�c")
-			.replace("&d", "�d").replace("&e", "�e").replace("&f", "�f")
-			.replace("��", "&").replace("\\�", "&");
+			.replace("&1", "§1").replace("&2", "§2").replace("&3", "§3")
+			.replace("&4", "§4").replace("&5", "§5").replace("&6", "§6")
+			.replace("&7", "§7").replace("&8", "§8").replace("&9", "§9")
+			.replace("&0", "§0").replace("&r", "§r")
+			.replace("&a", "§a").replace("&b", "§b").replace("&c", "§c")
+			.replace("&d", "§d").replace("&e", "§e").replace("&f", "§f")
+			.replace("§§", "&").replace("\\§", "&");
 	}
 	
 	/** Decipher formats in a string **/
 	public String determineFormats(String str){
 		return str
-			.replace("&k", "�k").replace("&l", "�l").replace("&m", "�m")
-			.replace("&n", "�n").replace("&o", "�o").replace("&r", "�r")
-			.replace("&f", "�f").replace("��", "&").replace("\\�", "&");
+			.replace("&k", "§k").replace("&l", "§l").replace("&m", "§m")
+			.replace("&n", "§n").replace("&o", "§o").replace("&r", "§r")
+			.replace("&f", "§f").replace("§§", "&").replace("\\§", "&");
 	}
 	
 	/** Decipher colors in a string and place them based on permissions **/
@@ -105,10 +105,10 @@ public class Utils {
 			if(str.contains("&") == false) break;
 			if(str.contains("&"+color) && (VaultHook.hasPermission(player, "chatmanager.color."+color)
 					|| VaultHook.hasPermission(player, "chatmanager.color."+ChatColor.getByChar(color).name().toLowerCase()))){
-				str = str.replace("&"+color, "�"+color);
+				str = str.replace("&"+color, "§"+color);
 			}
 		}
-		return str.replace("&�", "&").replace("\\�", "&");
+		return str.replace("&§", "&").replace("\\§", "&");
 	}
 	
 	/** Decipher formats in a string and place them based on permissions **/
@@ -120,10 +120,10 @@ public class Utils {
 			if(str.contains("&") == false) break;
 			if(str.contains("&"+format) && (VaultHook.hasPermission(player, "chatmanager.format."+format)
 					|| VaultHook.hasPermission(player, "chatmanager.format."+ChatColor.getByChar(format).name().toLowerCase()))){
-				str = str.replace("&"+format, "�"+format);
+				str = str.replace("&"+format, "§"+format);
 			}
 		}
-		return str.replace("&�", "&").replace("\\�", "&");
+		return str.replace("&§", "&").replace("\\§", "&");
 	}
 	
 	/** Replace all occurances of the regex with the replacement **/

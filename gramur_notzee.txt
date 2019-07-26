@@ -1,0 +1,39 @@
+// Language rules
+cks=x,ck=k,sc=sk,wh=w,some =sum ,uit =oot ,uite =eet ,ain =ane ,ea=ee,
+bb=b,dd=d,ff=f,gg=g,ll =l ,mm=m,nn=n,rr=r,ss=s,tt=t,
+dow =do ,low =lo ,row =ro ,
+by =bi ,dy =di ,fy =fi ,ky =ki ,ly =li ,my =mi ,ny =ni ,py =pi ,ry =ri ,sy =si ,ty = t ,vy =vi ,lly =li ,
+ver =vr ,
+
+// Common words
+ see = c , you = u , are = r , your = ur , you're = u'r , why = y , tea = t , tee = t , ex = x ,
+ for = 4 , too = 2 , to = 2 , and = & ,right=rite,one =1 , be = b , have = hav ,
+ definitely = def | defn ,
+what=wut,er = ur ,yes=yesh|ya|yeh|yurp|yee,
+could=cud,would=wood, awe= aw,
+receive=get,there=thar,
+
+// Numbers
+one =1 ,two =2 ,three=3,four=4,five=5,six=6,seven=7,eight=8,nine=9,ten =10 ,
+first=1st,third=3rd,fifth=5th,
+//second=2nd,
+
+// Abv.s
+ with = w/ |wiv , without = w/o ,for example=e.g.,
+ year=yr,hour=hr,minute=min,second=sec,random=rdm,level=lvl,resource=rss,please=pls|plz|ples|plez,
+
+// Just for fun
+thing=thang, nice = neic | niec | nice | nice ,very=very|vary
+
+// Adjectives
+thick = thic |thicc ,
+
+// Nouns
+strawberries=strahbs,tube=toob,brain =brane ,sword=sward,apple=apel, banana 
+
+
+// TODO:
+// 1) Specify order of replacements (nouns/words first, language rules last)
+// 2) Replace-with-random using '|'
+// 3) Preserve CASE when replacing
+// 4) 
