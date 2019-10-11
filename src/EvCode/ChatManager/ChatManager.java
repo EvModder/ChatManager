@@ -1,6 +1,7 @@
 package EvCode.ChatManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,8 +29,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
-	private boolean antiSpam = false, antiChatFilth = true, antiCmdFilth, removeCaps = true;
+	private boolean antiSpam = false, antiChatFilth = true, antiCmdFilth = true, removeCaps = true;
 	private boolean chatColor = true, chatFormat = true, signColor = true, signFormat = true;
+	private boolean filterSelf = true;
+	private int antiCmdFilthStartArg = 2;
 	private boolean antiSignFilth = true, checkWordsBackwards = false, autoUpdate = true;
 	private String pluginPrefix = "§3<§aC§3>§f ";
 
@@ -45,7 +48,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 	private int minWordLengthToCheckBackwards = 4;
 
 	private Map<String, String> subList;
-	private String defaultSub = "[-]";
+	private String defaultSub = "*";//"[-]";
 	private Utils utils = new Utils();
 
 	/** If fewer/more then this number are available, such as after a plugin update,
@@ -294,12 +297,18 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			StringBuilder builder = new StringBuilder(' ');
 			String[] args = evt.getMessage().split(" ");
 			for(int i = 1; i < args.length; ++i){
-				builder.append(args[i]);
-				builder.append(' ');
+				builder.append(args[i]).append(' ');
 			}
-			String chat = filterOutBadWords(builder.toString());
-			evt.setMessage(chat.trim());
-			
+			String chat;
+			if(args.length > antiCmdFilthStartArg){
+				chat = StringUtils.join(
+						Arrays.copyOfRange(args, 0, antiCmdFilthStartArg), ' ')+ " " +
+						filterOutBadWords(StringUtils.join(
+								Arrays.copyOfRange(args, antiCmdFilthStartArg, args.length), ' '));
+				evt.setMessage(chat.trim());
+			}
+			else chat = evt.getMessage();
+
 			chat = utils.convertFrom1337(utils.removePunctuation(chat));
 			if(hasBadWords(chat)) evt.setCancelled(true);
 			else if(hasBadWords(utils.combineRepeatedChars(chat))) evt.setCancelled(true);
@@ -411,7 +420,7 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		for(String line : lines){
 			if(!line.contains(":")) continue;
 			String[] split = line.toLowerCase().split(":");
-			String tag = split[0].replace(" ", "");
+			String tag = split[0].replace(" ", "").replace("-", "");
 			String value = split[1].trim();
 
 			if(tag.equals("blockspam")){//1
@@ -443,6 +452,10 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			else if(tag.equals("sanitizecommands")){//8
 				antiCmdFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
+			else if(tag.equals("santizecommandsstartarg")){//19
+				try{antiCmdFilthStartArg = Integer.parseInt(value);}
+				catch(NumberFormatException ex){invalidConfig = true;}
+			}
 			else if(tag.equals("sanitizesigntext")){//9
 				antiSignFilth = (value.equals("true") || value.equals("yes") || value.equals("yup"));
 			}
@@ -470,6 +483,9 @@ public final class ChatManager extends JavaPlugin implements Listener{
 			else if(tag.contains("prefix")){//17
 				pluginPrefix = line.split(":")[1].trim()+' ';
 			}
+			else if(tag.contains("filterself")){//18
+				filterSelf = (value.equals("true") || value.equals("yes") || value.equals("yup"));
+			}
 			else continue;
 			++settings;
 		}
@@ -489,8 +505,10 @@ public final class ChatManager extends JavaPlugin implements Listener{
 		config.append("\n MaxChatsPerPlayerPerSecond: "); config.append(maxChatsPerSecond );//5
 
 		config.append("\n\nSanitize Chat: "); config.append(antiChatFilth);//6
-		config.append("\n Filth Result Console Command: "); config.append(filthResultCmd);//17
+		config.append("\n Filth Result Console Command: ").append(filthResultCmd);//17
+		config.append("\n\nFilter self chat: ").append(filterSelf);//6
 		config.append("\nSanitize Commands: "); config.append(antiCmdFilth);//7
+		config.append("\nSanitize Commands Start Argument: ").append(antiCmdFilthStartArg);//19
 		config.append("\nSanitize Sign Text: "); config.append(antiSignFilth);//8
 		config.append("\n\n#Warning: the following configuration option can cause harmless ");
 		config.append("\n#words to be blocked if their reversed spelling matches a bad word.");
