@@ -3,7 +3,8 @@ main: EvCode.ChatManager.ChatManager
 Author: EvModder/Evil_Witchdoctor/Anuvin
 version: 1.6.3 #3=minor blocklist tweaks
 softdepend: [Vault]
-    
+api-version: 1.13
+
 commands:
    chatm:
       description: Commands for ChatManager.
@@ -11,92 +12,92 @@ commands:
       aliases: [chat,evcm,chatmanager,chat-manager,cm,evchatmanager]
       permission: chatmanager.command
       permission-message: You do not have permission for this command.
-     
+
 permissions:
    chatmanager.command:
-        description: Allows access to the /chatmanager command
-        default: op
-        
+      description: Allows access to the /chatmanager command
+      default: op
+
    chatmanager.reload:
-        description: Reload all configuration settings
-        default: op
-        
+      description: Reload all configuration settings
+      default: op
+
    chatmanager.togglespam:
-        description: Toggle spam-blocking on/off
-        default: op
-        
+      description: Toggle spam-blocking on/off
+      default: op
+
    chatmanager.togglefilth:
-        description: Toggle chat-filter on/off
-        default: op
-        
+      description: Toggle chat-filter on/off
+      default: op
+
    chatmanager.togglecolor:
-        description: Toggle server-wide chat color usage ability on/off
-        default: false
-        
+      description: Toggle server-wide chat color usage ability on/off
+      default: false
+
    chatmanager.toggleformat:
-        description: Toggle server-wide chat format usage ability on/off
-        default: false
-        
+      description: Toggle server-wide chat format usage ability on/off
+      default: false
+
    chatmanager.color:
-        description: Base permission to be able to use colors
-        default: true
-        
+      description: Base permission to be able to use colors
+      default: true
+
    chatmanager.format:
-        description: Base permission to be able to use formats
-        default: true
-        
+      description: Base permission to be able to use formats
+      default: true
+
    chatmanager.color.*:
-        description: Allows players to use colors in chat
-        children:
-            chatmanager.color: true
-            chatmanager.color.AQUA: true
-            chatmanager.color.BLACK: true
-            chatmanager.color.BLUE: true
-            chatmanager.color.DARK_AQUA: true
-            chatmanager.color.DARK_BLUE: true
-            chatmanager.color.DARK_GRAY: true
-            chatmanager.color.DARK_GREEN: true
-            chatmanager.color.DARK_PURPLE: true
-            chatmanager.color.DARK_RED: true
-            chatmanager.color.GOLD: true
-            chatmanager.color.GRAY: true
-            chatmanager.color.GREEN: true
-            chatmanager.color.LIGHT_PURPLE: true
-            chatmanager.color.RED: true
-            chatmanager.color.WHITE: true
-            chatmanager.color.YELLOW: true
-            chatmanager.color.white: true
-        default: op
-        
+      description: Allows players to use colors in chat
+      children:
+         chatmanager.color: true
+         chatmanager.color.AQUA: true
+         chatmanager.color.BLACK: true
+         chatmanager.color.BLUE: true
+         chatmanager.color.DARK_AQUA: true
+         chatmanager.color.DARK_BLUE: true
+         chatmanager.color.DARK_GRAY: true
+         chatmanager.color.DARK_GREEN: true
+         chatmanager.color.DARK_PURPLE: true
+         chatmanager.color.DARK_RED: true
+         chatmanager.color.GOLD: true
+         chatmanager.color.GRAY: true
+         chatmanager.color.GREEN: true
+         chatmanager.color.LIGHT_PURPLE: true
+         chatmanager.color.RED: true
+         chatmanager.color.WHITE: true
+         chatmanager.color.YELLOW: true
+         chatmanager.color.white: true
+      default: op
+
    chatmanager.format.*:
-        description: Allows players to use formats in chat
-        children:
-            chatmanager.format: true
-            chatmanager.format.reset: true
-            chatmanager.format.magic: true
-            chatmanager.format.underline: true
-            chatmanager.format.strikethrough: true
-            chatmanager.format.italic: true
-            chatmanager.format.bold: true
-            chatmanager.format.reset: true
-        default: op
-   
+      description: Allows players to use formats in chat
+      children:
+         chatmanager.format: true
+         chatmanager.format.reset: true
+         chatmanager.format.magic: true
+         chatmanager.format.underline: true
+         chatmanager.format.strikethrough: true
+         chatmanager.format.italic: true
+         chatmanager.format.bold: true
+         chatmanager.format.reset: true
+      default: op
+
    chatmanager.format.magic:
-        description: Allows a player to use &k
-        default: op
-   
+      description: Allows a player to use &k
+      default: op
+
    chatmanager.signcolor:
-        description: Allows players to use colors on signs
-        default: op
-        
+      description: Allows players to use colors on signs
+      default: op
+
    chatmanager.signformat:
-        description: Allows players to use formats on signs
-        default: op
-        
+      description: Allows players to use formats on signs
+      default: op
+
    chatmanager.spamfilter.exempt:
-        description: Chats from this player will not be monitored by the spam filter
-        default: op
-        
+      description: Chats from this player will not be monitored by the spam filter
+      default: op
+
    chatmanager.chatfilter.exempt:
         description: Chats from this player will not be monitored by the chat filter
         default: false
