@@ -1,4 +1,4 @@
-package EvCode.ChatManager;
+package net.evmodder.ChatManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;

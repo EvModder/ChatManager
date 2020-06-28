@@ -1,4 +1,4 @@
-package EvCode.ChatManager;
+package net.evmodder.ChatManager;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;

@@ -1,4 +1,4 @@
-package EvCode.ChatManager;
+package net.evmodder.ChatManager;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
