@@ -27,6 +27,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+//TODO: Merge with DisplayItem
+//TODO: Chat prefixes
+//TODO: Discord integration?
+//TODO: multiple-account spam detection
 public final class ChatManager extends JavaPlugin implements Listener{
 	/** Config options **/
 	private boolean antiSpam = false, antiChatFilth = true, antiCmdFilth = true, removeCaps = true;
