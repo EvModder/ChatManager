@@ -1,5 +1,5 @@
 name: ChatManager
-main: EvCode.ChatManager.ChatManager
+main: net.evmodder.ChatManager.ChatManager
 author: EvModder/EvDoc
 version: 1.6.3 #3=minor blocklist tweaks
 softdepend: [Vault]
