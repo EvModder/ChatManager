@@ -27,6 +27,9 @@ public class VaultHook {
 	}
 
 	private boolean setupPermissions(Plugin plugin){
+		if(plugin.getServer().getPluginManager().getPlugin("Vault") == null){
+			return false;
+		}
 		RegisteredServiceProvider<Permission> rsp = plugin.getServer().getServicesManager().getRegistration(Permission.class);
 		perms = rsp.getProvider();
 		return perms != null;

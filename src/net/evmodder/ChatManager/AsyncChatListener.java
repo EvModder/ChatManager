@@ -16,6 +16,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import net.evmodder.EvLib.extras.TellrawUtils.Component;
+import net.evmodder.EvLib.extras.TellrawUtils.Format;
+import net.evmodder.EvLib.extras.TellrawUtils.FormatFlag;
 import net.evmodder.EvLib.extras.TellrawUtils.HoverEvent;
 import net.evmodder.EvLib.extras.TellrawUtils.ListComponent;
 import net.evmodder.EvLib.extras.TellrawUtils.RawTextComponent;
@@ -23,6 +25,7 @@ import net.evmodder.EvLib.extras.TellrawUtils.TextHoverAction;
 import net.evmodder.EvLib.extras.TellrawUtils.TranslationComponent;
 import net.evmodder.EvLib.extras.TellrawUtils;
 import net.evmodder.EvLib.extras.TextUtils;
+import net.evmodder.EvLib.extras.TypeUtils;
 
 class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
@@ -90,13 +93,19 @@ class AsyncChatListener implements Listener{
 	Component getItemComponent(ItemStack item){
 		String jsonData = JunkUtils.convertItemStackToJson(item, JSON_LIMIT);
 		TextHoverAction hoverAction = new TextHoverAction(HoverEvent.SHOW_ITEM, jsonData);
+		String rarityColor = TypeUtils.getRarityColor(item).name().toLowerCase();
+		FormatFlag[] formats = 
+				item.hasItemMeta() && item.getItemMeta().hasDisplayName()
+//				&& item.getItemMeta().getDisplayName().matches("^(?:\\s|(?:§[k-o]))*[^§].*")
+			? new FormatFlag[]{new FormatFlag(Format.ITALIC, true)} : null;
+
 		Component localizedName = TellrawUtils.getLocalizedDisplayName(item);
 		if(localizedName instanceof TranslationComponent) return new TranslationComponent(
 				((TranslationComponent)localizedName).getJsonKey(), ((TranslationComponent)localizedName).getWith(),
-				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/null, /*formats=*/null);
+				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats);
 		if(localizedName instanceof RawTextComponent) return new RawTextComponent(
 				localizedName.toPlainText(),
-				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/null, /*formats=*/null);
+				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats);
 		else{
 			pl.getLogger().warning("Unknown component type returned from getLocalizedDisplayName(): "+localizedName.toString());
 			return null;
@@ -215,20 +224,27 @@ class AsyncChatListener implements Listener{
 		}
 
 		if(DISPLAY_ITEMS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.displayitems") && chat.matches(".*?\\[[i1-9]\\].*?")){
+			chat = String.format(evt.getFormat(), evt.getPlayer().getDisplayName(), chat);
+			pl.getLogger().info("display name: "+evt.getPlayer().getDisplayName());
+			pl.getLogger().info("chat format: "+chat);
 			ListComponent comp = new ListComponent(new RawTextComponent(chat.replaceAll("\\[[(i1-9)]\\]", "[$0]")));
-			if(chat.contains("[[i]]")){
+			if(chat.contains("[i]")){
 				ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
 				if(hand != null) comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
 			}
 			for(int i=1; i<=9; ++i){
-				if(chat.contains("[["+i+"]]")){
+				if(chat.contains("["+i+"]")){
 					ItemStack item = evt.getPlayer().getInventory().getItem(i+1);
 					if(item != null) comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponent(item));
 				}
 			}
 			evt.setCancelled(true);
 			evt.setMessage("");
-			pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+comp.toString());
+			final String compStr = comp.toString();
+			pl.getLogger().info("comp str: "+compStr);
+			new BukkitRunnable(){@Override public void run(){
+				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
+			}}.runTask(pl);
 		}
 	}
 }
