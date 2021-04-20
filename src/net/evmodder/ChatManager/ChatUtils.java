@@ -3,81 +3,66 @@ package net.evmodder.ChatManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class Utils {
-	
+public final class ChatUtils{
+
 	/** Strip punctuation, NOTE: Does not remove spaces **/
-	public String removePunctuation(String oldChat){
-		return oldChat.replaceAll("[^a-zA-Z\\s]", "");
-	}
-	
+	public static String removePunctuation(String oldChat){return oldChat.replaceAll("[^a-zA-Z\\s]", "");}
+
 	/** Strip non-alphanumeric charactes, NOTE: Does not remove spaces **/
-	public String removeNonAlphanumeric(String oldChat){
-		return oldChat.replaceAll("[^a-zA-Z0-9\\s]", "");
-	}
-	
+	public static String removeNonAlphanumeric(String oldChat){return oldChat.replaceAll("[^a-zA-Z0-9\\s]", "");}
+
 	/** Strip all lowercase characters and punctuation **/
-	public String removeLowerCaseAndPunc(String oldChat){
-		return oldChat.replaceAll("[^A-Z\\s]", "");
-	}
-	
+	public static String removeLowerCaseAndPunc(String oldChat){return oldChat.replaceAll("[^A-Z\\s]", "");}
+
 	/** Strip all uppercase characters and punctuation **/
-	public String removeUpperCaseAndPunc(String oldChat){
-		return oldChat.replaceAll("[^a-z\\s]", "");
-	}
-	
+	public static String removeUpperCaseAndPunc(String oldChat){return oldChat.replaceAll("[^a-z\\s]", "");}
+
 	/** Strip all lowercase characters **/
-	public String removeLowerCase(String oldChat){
-		return oldChat.replaceAll("[a-z]", "");
-	}
-	
+	public static String removeLowerCase(String oldChat){return oldChat.replaceAll("[a-z]", "");}
+
 	/** Strip all uppercase characters **/
-	public String removeUpperCase(String oldChat){
-		return oldChat.replaceAll("[A-Z]", "");
-	}
-	
+	public static String removeUpperCase(String oldChat){return oldChat.replaceAll("[A-Z]", "");}
+
 	/** Reverse the order of chars in a string **/
-	public String reverse(String oldChat){
-		char[] chars = oldChat.toCharArray();
-		
-		StringBuilder builder = new StringBuilder();
-		for(int i = chars.length-1; i >= 0; i--) builder.append(chars[i]);
-		return builder.toString();
-	}
-	
+	public static String reverse(String oldChat){return new StringBuilder(oldChat).reverse().toString();}
+
 	/** leet converter **/
-	public String convertFrom1337(String oldChat){
+	public static String convertFrom1337(String oldChat){
 		char[] chars = oldChat.toCharArray();
-		
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < chars.length; i++){
-			if(chars[i] == '1' || chars[i] == '|')builder.append('L');
-			else if(chars[i] == '3')builder.append('E');
-			else if(chars[i] == '4' || chars[i] == '@')builder.append('A');
-			else if(chars[i] == '5' || chars[i] == '$')builder.append('S');
-			else if(chars[i] == '6')builder.append('G');
-			else if(chars[i] == '7')builder.append('T');
-			else if(chars[i] == '0')builder.append('O');
-			else if(chars[i] == '#')builder.append('H');
-			else builder.append(chars[i]);
+		for(int i = 0; i < chars.length; ++i){
+			switch(chars[i]){
+				case ChatColor.COLOR_CHAR: case '&':
+					builder.append(chars[i]).append(chars[++i]);
+					break;
+				case '1': case '|': builder.append('L'); break;
+				case '4': case '@': builder.append('A'); break;
+				case '5': case '$': builder.append('S'); break;
+				case '3': builder.append('E'); break;
+				case '6': builder.append('G'); break;
+				case '7': builder.append('T'); break;
+				case '0': builder.append('O'); break;
+				case '#': builder.append('H'); break;
+				default: builder.append(chars[i]);
+			}
 		}
 		return builder.toString();
 	}
 
 	/** Combines repeated characters, except for the letter 'o'.
-	  * This is useful for detecting bad words written like such: "niggggger" **/
-	public String combineRepeatedChars(String oldChat){
+	  * This is useful for detecting bad words written like this: "dammmnn" **/
+	public static String combineRepeatedChars(String oldChat){
 		char[] chars = oldChat.toCharArray();
-		
 		StringBuilder builder = new StringBuilder();
 		builder.append(chars[0]);
-		for(int i = 1; i < chars.length; i++){
+		for(int i = 1; i < chars.length; ++i){
 			if(chars[i] != chars[i-1] || chars[i] == 'o')builder.append(chars[i]);
 		}
 		return builder.toString();
 	}
-	
+
 	/** Decipher colors in a string **/
-	public String determineColors(String str){
+	public static String determineColors(String str){
 		return str
 			.replace("&1", "§1").replace("&2", "§2").replace("&3", "§3")
 			.replace("&4", "§4").replace("&5", "§5").replace("&6", "§6")
@@ -89,7 +74,7 @@ public class Utils {
 	}
 	
 	/** Decipher formats in a string **/
-	public String determineFormats(String str){
+	public static String determineFormats(String str){
 		return str
 			.replace("&k", "§k").replace("&l", "§l").replace("&m", "§m")
 			.replace("&n", "§n").replace("&o", "§o").replace("&r", "§r")
@@ -97,8 +82,8 @@ public class Utils {
 	}
 	
 	/** Decipher colors in a string and place them based on permissions **/
-	char[] chatColors = {'1','2','3','4','5','6','7','8','9','0','a','b','c','d','e','f','r'};
-	public String determineColorsByPermission(String str, Player player){
+	static char[] chatColors = {'1','2','3','4','5','6','7','8','9','0','a','b','c','d','e','f','r'};
+	public static String determineColorsByPermission(String str, Player player){
 		if(str.replace("&&", "").replace("\\&", "").contains("&") == false) return str;
 		
 		for(char color : chatColors){
@@ -112,8 +97,8 @@ public class Utils {
 	}
 	
 	/** Decipher formats in a string and place them based on permissions **/
-	char[] chatFomats = {'k','l','m','n','o','r','f'};
-	public String determineFormatsByPermission(String str, Player player){
+	static char[] chatFomats = {'k','l','m','n','o','r','f'};
+	public static String determineFormatsByPermission(String str, Player player){
 		if(str.replace("&&", "").replace("\\&", "").contains("&") == false) return str;
 		
 		for(char format : chatColors){
@@ -127,7 +112,7 @@ public class Utils {
 	}
 	
 	/** Replace all occurances of the regex with the replacement **/
-	public String replaceIgnoreCase(String string, String regex, String replacement){
+	public static String replaceIgnoreCase(String string, String regex, String replacement){
 		return string.replaceAll("(?i)"+regex, replacement);
 	}
 }
