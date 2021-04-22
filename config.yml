@@ -1,4 +1,4 @@
-anti-spam: true
+anti-spam: false
 anti-caps: true
 spam-result-command: "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P"
 max-chats-per-minute: 35

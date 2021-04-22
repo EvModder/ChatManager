@@ -1,6 +1,7 @@
 package net.evmodder.ChatManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -26,6 +28,8 @@ import net.evmodder.EvLib.extras.TellrawUtils.TranslationComponent;
 import net.evmodder.EvLib.extras.TellrawUtils;
 import net.evmodder.EvLib.extras.TextUtils;
 import net.evmodder.EvLib.extras.TypeUtils;
+import net.evmodder.EvLib.extras.NBTTagUtils;
+import net.evmodder.EvLib.extras.NBTTagUtils.RefNBTTag;
 
 class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
@@ -40,6 +44,7 @@ class AsyncChatListener implements Listener{
 	final boolean DISPLAY_ITEMS;
 	final String ITEM_REPLACEMENT;
 	final int JSON_LIMIT = 15000;//TODO: move to config
+	final String DEFAULT_ITEM_DISPLAY_COLOR = "#cccccc";
 
 	AsyncChatListener(ChatManager plugin){
 		this.pl = plugin;
@@ -90,22 +95,36 @@ class AsyncChatListener implements Listener{
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent evt){lastChats.remove(evt.getPlayer().getUniqueId());}
 
+	public final static String getDisplayName(ItemStack item){
+		RefNBTTag tag = NBTTagUtils.getTag(item);
+		RefNBTTag display = tag.hasKey("display") ? (RefNBTTag)tag.get("display") : new RefNBTTag();
+		return display.hasKey("Name") ? display.getString("Name") : null;
+//		return TellrawUtils.parseComponentFromString(display.getString("Name"));
+	}
+
 	Component getItemComponent(ItemStack item){
+		if(item.hasItemMeta() && item.getItemMeta().hasDisplayName())
+			pl.getLogger().info("custom name of [i] item: "+item.getItemMeta().getDisplayName().replace(ChatColor.COLOR_CHAR, '&'));
 		String jsonData = JunkUtils.convertItemStackToJson(item, JSON_LIMIT);
 		TextHoverAction hoverAction = new TextHoverAction(HoverEvent.SHOW_ITEM, jsonData);
+		Component localizedName = TellrawUtils.getLocalizedDisplayName(item);
 		String rarityColor = TypeUtils.getRarityColor(item).name().toLowerCase();
+		if(rarityColor == "white") rarityColor = DEFAULT_ITEM_DISPLAY_COLOR;
+		pl.getLogger().info("localized name of [i] item: "+localizedName.toString().replace(ChatColor.COLOR_CHAR, '&'));
+		pl.getLogger().info("localized name of [i] item plaintext: "+localizedName.toPlainText().replace(ChatColor.COLOR_CHAR, '&'));
 		FormatFlag[] formats = 
-				item.hasItemMeta() && item.getItemMeta().hasDisplayName()
+				(localizedName.getFormats() == null || Arrays.stream(localizedName.getFormats()).allMatch(f -> f.format != Format.ITALIC))
+				&& item.hasItemMeta() && item.getItemMeta().hasDisplayName()
 //				&& item.getItemMeta().getDisplayName().matches("^(?:\\s|(?:§[k-o]))*[^§].*")
 			? new FormatFlag[]{new FormatFlag(Format.ITALIC, true)} : null;
 
-		Component localizedName = TellrawUtils.getLocalizedDisplayName(item);
 		if(localizedName instanceof TranslationComponent) return new TranslationComponent(
 				((TranslationComponent)localizedName).getJsonKey(), ((TranslationComponent)localizedName).getWith(),
 				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats);
-		if(localizedName instanceof RawTextComponent) return new RawTextComponent(
-				localizedName.toPlainText(),
-				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats);
+		if(localizedName instanceof RawTextComponent) return new ListComponent(
+				new RawTextComponent(/*text=*/"", /*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats),
+				TellrawUtils.convertHexColorsToComponents(localizedName.toPlainText())
+		);
 		else{
 			pl.getLogger().warning("Unknown component type returned from getLocalizedDisplayName(): "+localizedName.toString());
 			return null;
@@ -216,6 +235,7 @@ class AsyncChatListener implements Listener{
 		}
 		//-------------------------------------------------------------------------
 
+		if(DISPLAY_ITEMS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.displayitems")) chat = chat.replace("[I]", "[i]");
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
 		if(evt.getMessage().equals(chat) == false){
@@ -224,24 +244,26 @@ class AsyncChatListener implements Listener{
 		}
 
 		if(DISPLAY_ITEMS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.displayitems") && chat.matches(".*?\\[[i1-9]\\].*?")){
-			chat = String.format(evt.getFormat(), evt.getPlayer().getDisplayName(), chat);
-			pl.getLogger().info("display name: "+evt.getPlayer().getDisplayName());
-			pl.getLogger().info("chat format: "+chat);
-			ListComponent comp = new ListComponent(new RawTextComponent(chat.replaceAll("\\[[(i1-9)]\\]", "[$0]")));
+			chat = String.format(evt.getFormat(), evt.getPlayer().getDisplayName()+ChatColor.RESET, chat); // The fully-formed chat message
+			chat = chat.replaceAll("\\[[(i1-9)]\\]", "[$0]"); // Add an extra layer of brackets
+			ListComponent comp = TellrawUtils.convertHexColorsToComponents(chat);
+			pl.getLogger().info("display name: "+evt.getPlayer().getDisplayName().replace(ChatColor.COLOR_CHAR, '&'));
+			pl.getLogger().info("chat format: "+chat.replace(ChatColor.COLOR_CHAR, '&'));
 			if(chat.contains("[i]")){
 				ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
-				if(hand != null) comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
+				comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
 			}
 			for(int i=1; i<=9; ++i){
 				if(chat.contains("["+i+"]")){
-					ItemStack item = evt.getPlayer().getInventory().getItem(i+1);
-					if(item != null) comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponent(item));
+					ItemStack item = evt.getPlayer().getInventory().getItem(i-1);
+					if(item == null) item = new ItemStack(Material.AIR);
+					comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponent(item));
 				}
 			}
 			evt.setCancelled(true);
 			evt.setMessage("");
 			final String compStr = comp.toString();
-			pl.getLogger().info("comp str: "+compStr);
+			pl.getLogger().info("comp str: "+compStr.replace(ChatColor.COLOR_CHAR, '&'));
 			new BukkitRunnable(){@Override public void run(){
 				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
 			}}.runTask(pl);
