@@ -1,7 +1,6 @@
 package net.evmodder.ChatManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -103,31 +102,21 @@ class AsyncChatListener implements Listener{
 	}
 
 	Component getItemComponent(ItemStack item){
-		if(item.hasItemMeta() && item.getItemMeta().hasDisplayName())
-			pl.getLogger().info("custom name of [i] item: "+item.getItemMeta().getDisplayName().replace(ChatColor.COLOR_CHAR, '&'));
-		String jsonData = JunkUtils.convertItemStackToJson(item, JSON_LIMIT);
-		TextHoverAction hoverAction = new TextHoverAction(HoverEvent.SHOW_ITEM, jsonData);
-		Component localizedName = TellrawUtils.getLocalizedDisplayName(item);
+		TextHoverAction hoverAction = new TextHoverAction(HoverEvent.SHOW_ITEM, JunkUtils.convertItemStackToJson(item, JSON_LIMIT));
 		String rarityColor = TypeUtils.getRarityColor(item).name().toLowerCase();
 		if(rarityColor == "white") rarityColor = DEFAULT_ITEM_DISPLAY_COLOR;
-		pl.getLogger().info("localized name of [i] item: "+localizedName.toString().replace(ChatColor.COLOR_CHAR, '&'));
-		pl.getLogger().info("localized name of [i] item plaintext: "+localizedName.toPlainText().replace(ChatColor.COLOR_CHAR, '&'));
-		FormatFlag[] formats = 
-				(localizedName.getFormats() == null || Arrays.stream(localizedName.getFormats()).allMatch(f -> f.format != Format.ITALIC))
-				&& item.hasItemMeta() && item.getItemMeta().hasDisplayName()
-//				&& item.getItemMeta().getDisplayName().matches("^(?:\\s|(?:§[k-o]))*[^§].*")
-			? new FormatFlag[]{new FormatFlag(Format.ITALIC, true)} : null;
-
-		if(localizedName instanceof TranslationComponent) return new TranslationComponent(
-				((TranslationComponent)localizedName).getJsonKey(), ((TranslationComponent)localizedName).getWith(),
-				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats);
-		if(localizedName instanceof RawTextComponent) return new ListComponent(
-				new RawTextComponent(/*text=*/"", /*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, formats),
-				TellrawUtils.convertHexColorsToComponents(localizedName.toPlainText())
-		);
+		if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()){
+			ListComponent parentPropertiesComp = new ListComponent(new RawTextComponent(
+					/*text=*/"", /*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor,
+					/*formats=*/new FormatFlag[]{new FormatFlag(Format.ITALIC, true)}));
+			String rawDisplayName = getDisplayName(item);
+			parentPropertiesComp.addComponent(TellrawUtils.parseComponentFromString(rawDisplayName));
+			return parentPropertiesComp;
+		}
 		else{
-			pl.getLogger().warning("Unknown component type returned from getLocalizedDisplayName(): "+localizedName.toString());
-			return null;
+			TranslationComponent localizedName = (TranslationComponent)TellrawUtils.getLocalizedDisplayName(item);
+			return new TranslationComponent(localizedName.getJsonKey(), localizedName.getWith(),
+					/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, /*formats=*/null);
 		}
 	}
 
@@ -247,8 +236,6 @@ class AsyncChatListener implements Listener{
 			chat = String.format(evt.getFormat(), evt.getPlayer().getDisplayName()+ChatColor.RESET, chat); // The fully-formed chat message
 			chat = chat.replaceAll("\\[[(i1-9)]\\]", "[$0]"); // Add an extra layer of brackets
 			ListComponent comp = TellrawUtils.convertHexColorsToComponents(chat);
-			pl.getLogger().info("display name: "+evt.getPlayer().getDisplayName().replace(ChatColor.COLOR_CHAR, '&'));
-			pl.getLogger().info("chat format: "+chat.replace(ChatColor.COLOR_CHAR, '&'));
 			if(chat.contains("[i]")){
 				ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
 				comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
