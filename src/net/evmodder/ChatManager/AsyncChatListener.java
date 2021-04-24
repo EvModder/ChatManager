@@ -104,7 +104,7 @@ class AsyncChatListener implements Listener{
 	Component getItemComponent(ItemStack item){
 		TextHoverAction hoverAction = new TextHoverAction(HoverEvent.SHOW_ITEM, JunkUtils.convertItemStackToJson(item, JSON_LIMIT));
 		String rarityColor = TypeUtils.getRarityColor(item).name().toLowerCase();
-		if(rarityColor == "white") rarityColor = DEFAULT_ITEM_DISPLAY_COLOR;
+		if(rarityColor.equals("white")) rarityColor = DEFAULT_ITEM_DISPLAY_COLOR;
 		if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()){
 			ListComponent parentPropertiesComp = new ListComponent(new RawTextComponent(
 					/*text=*/"", /*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor,
@@ -250,7 +250,6 @@ class AsyncChatListener implements Listener{
 			evt.setCancelled(true);
 			evt.setMessage("");
 			final String compStr = comp.toString();
-			pl.getLogger().info("comp str: "+compStr.replace(ChatColor.COLOR_CHAR, '&'));
 			new BukkitRunnable(){@Override public void run(){
 				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
 			}}.runTask(pl);
