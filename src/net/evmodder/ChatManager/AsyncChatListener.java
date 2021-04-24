@@ -114,9 +114,14 @@ class AsyncChatListener implements Listener{
 			return parentPropertiesComp;
 		}
 		else{
-			TranslationComponent localizedName = (TranslationComponent)TellrawUtils.getLocalizedDisplayName(item);
-			return new TranslationComponent(localizedName.getJsonKey(), localizedName.getWith(),
-					/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, /*formats=*/null);
+			Component localizedName = TellrawUtils.getLocalizedDisplayName(item);
+			if(localizedName instanceof TranslationComponent) return new TranslationComponent(
+				((TranslationComponent)localizedName).getJsonKey(), ((TranslationComponent)localizedName).getWith(),
+				/*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, /*formats=*/null);
+			return new ListComponent(
+				new RawTextComponent(/*text=*/"", /*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor, /*formats=*/null),
+				TellrawUtils.getLocalizedDisplayName(item)
+			);
 		}
 	}
 
