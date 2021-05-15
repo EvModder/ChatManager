@@ -50,7 +50,7 @@ class SignChangeListener implements Listener{
 		if(SANITIZE_SIGNS){
 			if(chatFilter.hasBadWords(filteredText)) evt.setCancelled(true);
 			else{
-				filteredText = ChatUtils.convertFrom1337(ChatUtils.removePunctuation(filteredText));
+				filteredText = ChatUtils.convertFrom1337(ChatUtils.removeNonAlphanumeric(filteredText));
 				if(chatFilter.hasBadWords(filteredText)) evt.setCancelled(true);
 				else if(chatFilter.hasBadWords(ChatUtils.combineRepeatedChars(filteredText))) evt.setCancelled(true);
 				else return;

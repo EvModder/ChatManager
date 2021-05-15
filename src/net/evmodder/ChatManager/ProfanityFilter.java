@@ -14,7 +14,7 @@ public class ProfanityFilter{
 	ProfanityFilter(ChatManager pl){
 		badWords = new HashMap<String, String>();
 
-		loadBadWords(pl, badWords, FileIO.loadResource(pl, "defaultblocked.txt").replace("\n", ""));
+		loadBadWords(pl, badWords, JunkUtils.loadResource(pl, "defaultblocked.txt"));
 		loadBadWords(pl, badWords, FileIO.loadFile("blocked-words.txt",
 					"thisisabadword,badword248,a@@ , word45 ,CRAPS**T,lolbutts,LMFAO=haha,flycoder=qua-112" +
 				   "\n\n# Spaces are fine to use, but please realize that " +
@@ -35,7 +35,7 @@ public class ProfanityFilter{
 			badWords.entrySet().stream()
 					.filter(e -> !e.getKey().trim().contains(" ") &&
 							e.getKey().length() >= MIN_WORD_LENGTH_TO_CHECK_BACKWARDS &&
-							e.getKey().equals(ChatUtils.removePunctuation(e.getKey())) &&
+							e.getKey().equals(ChatUtils.removeNonAlphanumeric(e.getKey())) &&
 							badWords.get(ChatUtils.reverse(e.getKey())) == null)
 					.forEach(e -> badWordsBackwards.put(ChatUtils.reverse(e.getKey()), e.getValue()));
 		}
@@ -43,9 +43,9 @@ public class ProfanityFilter{
 		//loop through the subList and remove instances of "sameword=sameword"
 		badWords.entrySet().removeIf(e -> e.getKey().equals(e.getValue()));
 	}
-	
+
 	void loadBadWords(ChatManager pl, HashMap<String, String> badWords, String rawBlockedWordsFileContent){
-		String[] blockedWords = FileIO.loadResource(pl, "defaultblocked.txt").replace("\n", "").split(",");
+		String[] blockedWords = rawBlockedWordsFileContent.replace("\n", "").split(",");
 		for(String word : blockedWords){
 			if(!word.trim().isEmpty()){
 				word = word.replace("\\=", "<equals>").replace("=", "<split>").replace("<equals>", "=");
@@ -67,23 +67,14 @@ public class ProfanityFilter{
 	public String filterOutBadWords(String chat){
 		String lowerCaseChat = chat.toLowerCase();
 		for(String badword : badWords.keySet()){
-			if(chat.contains(badword)){
+			if(chat.contains(badword) || lowerCaseChat.contains(badword)){
 				String trimmed = badword.trim();
 				String subword = badWords.get(trimmed);
-				chat = chat.replace(badword,
-					(badword.startsWith(" ") ? " " : "") +
-					(subword != null ? subword :
-					(defaultSub.length() != 1 ? defaultSub : StringUtils.repeat(defaultSub, trimmed.length()-1)) +
-					(badword.endsWith(" ") ? " " : "")));
-			}
-			else if(lowerCaseChat.contains(badword)){
-				String trimmed = badword.trim();
-				String subword = badWords.get(trimmed);
-				chat = ChatUtils.replaceIgnoreCase(chat, badword,
-					(badword.startsWith(" ") ? " " : "") +
-					(subword != null ? subword :
-					(defaultSub.length() != 1 ? defaultSub : StringUtils.repeat(defaultSub, trimmed.length()-1)) +
-					(badword.endsWith(" ") ? " " : "")));
+				if(subword == null) subword = defaultSub.length() != 1 ? defaultSub : StringUtils.repeat(defaultSub, trimmed.length()-1);
+				if(badword.startsWith(" ")) subword = " " + subword;
+				if(badword.endsWith(" ")) subword = subword + " ";
+				chat = ChatUtils.replaceIgnoreCase(chat, badword, subword);
+				org.bukkit.Bukkit.getServer().getLogger().info("badword: '"+badword+"', subword: '"+subword+"'");
 			}
 		}
 		return chat;

@@ -137,8 +137,8 @@ class AsyncChatListener implements Listener{
 		if(SANITIZE_CHAT && !VaultHook.hasPermission(evt.getPlayer(), "chatmanager.chatfilter.exempt")){
 			chat = chatFilter.filterOutBadWords(chat);
 
-			final String dePuncChat = ChatUtils.removePunctuation(chat);
-			final String deLeetChat1 = ChatUtils.removePunctuation(ChatUtils.convertFrom1337(chat));
+			final String dePuncChat = ChatUtils.removeNonAlphanumeric(chat);
+			final String deLeetChat1 = ChatUtils.removeNonAlphanumeric(ChatUtils.convertFrom1337(chat));
 			final String deLeetChat2 = ChatUtils.convertFrom1337(ChatUtils.removeNonAlphanumeric(chat));
 			final String deLowercaseChat = dePuncChat.toLowerCase();
 			final String deUppercaseChat = dePuncChat.toUpperCase();
@@ -152,6 +152,7 @@ class AsyncChatListener implements Listener{
 			if(chatFilter.hasBadWords(newChat.toLowerCase())){
 				// TODO: make a substitution algorithm
 				chat = (DEFAULT_BADWORD_SUB.length() != 1) ? DEFAULT_BADWORD_SUB : StringUtils.repeat(DEFAULT_BADWORD_SUB, chat.length()/2 +1);
+				pl.getLogger().info("badWord detected in modified chat: "+newChat.toLowerCase());
 			}
 			if(!chat.equals(' '+evt.getMessage()+' ')){// message has changed
 				// they've been naughty!
@@ -209,8 +210,8 @@ class AsyncChatListener implements Listener{
 			}
 			String colorless = ChatColor.stripColor(chat);
 			int chatLength = colorless.length();
-			String noPuncChat = ChatUtils.removePunctuation(chat);
-			int noPuncChatLength = ChatUtils.removePunctuation(colorless).length();
+			String noPuncChat = ChatUtils.removeNonAlphanumeric(chat);
+			int noPuncChatLength = ChatUtils.removeNonAlphanumeric(colorless).length();
 
 			//if more then 55% of the chat is non-alphanumerical, remove the excess punctuation
 			if((chatLength > 7 && chatLength*.55 < chatLength-noPuncChatLength)){

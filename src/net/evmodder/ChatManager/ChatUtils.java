@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 
 public final class ChatUtils{
 
-	/** Strip punctuation, NOTE: Does not remove spaces **/
-	public static String removePunctuation(String oldChat){return oldChat.replaceAll("[^a-zA-Z\\s]", "");}
+//	/** Strip punctuation, NOTE: Does not remove spaces **/
+//	public static String removePunctuation(String oldChat){return oldChat.replaceAll("[^a-zA-Z0\\s]", "");}
 
 	/** Strip non-alphanumeric charactes, NOTE: Does not remove spaces **/
 	public static String removeNonAlphanumeric(String oldChat){return oldChat.replaceAll("[^a-zA-Z0-9\\s]", "");}

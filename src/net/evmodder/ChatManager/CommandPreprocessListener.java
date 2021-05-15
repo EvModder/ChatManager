@@ -41,7 +41,7 @@ class CommandPreprocessListener implements Listener{
 			}
 			else chat = evt.getMessage();
 
-			chat = ChatUtils.convertFrom1337(ChatUtils.removePunctuation(chat));
+			chat = ChatUtils.convertFrom1337(ChatUtils.removeNonAlphanumeric(chat));
 			if(chatFilter.hasBadWords(chat)) evt.setCancelled(true);
 			else if(chatFilter.hasBadWords(ChatUtils.combineRepeatedChars(chat))) evt.setCancelled(true);
 			else return;

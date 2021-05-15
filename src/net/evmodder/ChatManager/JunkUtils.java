@@ -1,6 +1,15 @@
 package net.evmodder.ChatManager;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import org.bukkit.inventory.ItemStack;
+import net.evmodder.EvLib.FileIO;
 import net.evmodder.EvLib.extras.ReflectionUtils;
 import net.evmodder.EvLib.extras.ReflectionUtils.RefClass;
 import net.evmodder.EvLib.extras.ReflectionUtils.RefMethod;
@@ -37,5 +46,64 @@ public class JunkUtils{
 			jsonString = itemAsJsonObject.toString();
 		}
 		return itemAsJsonObject.toString();
+	}
+
+	// Different from FileIO only in that it doesn't trim trailing/leading line whitespace
+	public static String loadResource(Object pl, String filename/*, boolean keepComments*/){
+		try{
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(pl.getClass().getResourceAsStream("/"+filename)));
+
+			StringBuilder file = new StringBuilder();
+			String line;
+			while((line = reader.readLine()) != null){
+				line = line.replace("//", "#");
+				int cut = /*keepComments ? -1 :*/ line.indexOf('#');
+				if(cut == -1) file.append('\n').append(line);
+				else if(cut > 0) file.append('\n').append(line.substring(0, cut));
+			}
+			reader.close();
+			return file.substring(1);
+		}
+		catch(IOException ex){ex.printStackTrace();}
+		return "";
+	}
+
+	// Different from FileIO only in that it doesn't trim trailing/leading line whitespace
+	public static String loadFile(String filename, String defaultContent){
+		BufferedReader reader = null;
+		try{reader = new BufferedReader(new FileReader(FileIO.DIR+filename));}
+		catch(FileNotFoundException e){
+			if(defaultContent == null || defaultContent.isEmpty()) return defaultContent;
+
+			//Create Directory
+			File dir = new File(FileIO.DIR);
+			if(!dir.exists())dir.mkdir();
+
+			//Create the file
+			File conf = new File(FileIO.DIR+filename);
+			try{
+				conf.createNewFile();
+				BufferedWriter writer = new BufferedWriter(new FileWriter(conf));
+				writer.write(defaultContent);
+				writer.close();
+			}
+			catch(IOException e1){e1.printStackTrace();}
+			return defaultContent;
+		}
+		StringBuilder file = new StringBuilder();
+		if(reader != null){
+			try{
+				String line;
+				while((line = reader.readLine()) != null){
+					line = line.replace("//", "#");
+					int cut = line.indexOf('#');
+					if(cut == -1) file.append('\n').append(line);
+					else if(cut > 0) file.append('\n').append(line.substring(0, cut));
+				}
+				reader.close();
+			}catch(IOException e){}
+		}
+		return file.length() == 0 ? "" : file.substring(1);//Hmm; return "" or defaultContent
 	}
 }
