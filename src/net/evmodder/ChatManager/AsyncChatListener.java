@@ -28,7 +28,7 @@ import net.evmodder.EvLib.extras.TellrawUtils;
 import net.evmodder.EvLib.extras.TextUtils;
 import net.evmodder.EvLib.extras.TypeUtils;
 import net.evmodder.EvLib.extras.NBTTagUtils;
-import net.evmodder.EvLib.extras.NBTTagUtils.RefNBTTag;
+import net.evmodder.EvLib.extras.NBTTagUtils.RefNBTTagCompound;
 
 class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
@@ -95,8 +95,8 @@ class AsyncChatListener implements Listener{
 	public void onPlayerQuit(PlayerQuitEvent evt){lastChats.remove(evt.getPlayer().getUniqueId());}
 
 	public final static String getDisplayName(ItemStack item){
-		RefNBTTag tag = NBTTagUtils.getTag(item);
-		RefNBTTag display = tag.hasKey("display") ? (RefNBTTag)tag.get("display") : new RefNBTTag();
+		RefNBTTagCompound tag = NBTTagUtils.getTag(item);
+		RefNBTTagCompound display = tag.hasKey("display") ? (RefNBTTagCompound)tag.get("display") : new RefNBTTagCompound();
 		return display.hasKey("Name") ? display.getString("Name") : null;
 //		return TellrawUtils.parseComponentFromString(display.getString("Name"));
 	}
