@@ -8,11 +8,12 @@ import org.bukkit.plugin.Plugin;
 import net.evmodder.EvLib.EvPlugin;
 import net.evmodder.EvLib.Updater;
 
-//TODO: Merge with DisplayItem
+//TODO: (ChatManager) [-] -> *, no filter for self chat, toggle filtering with tag
 //TODO: Chat prefixes
 //TODO: sign colors actually working
 //TODO: Discord integration
 //TODO: multiple-account spam detection
+//TEST: Merge with DisplayItem
 public final class ChatManager extends EvPlugin implements Listener{
 	ProfanityFilter profanityFilter;
 
