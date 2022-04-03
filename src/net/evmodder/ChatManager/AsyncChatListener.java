@@ -1,6 +1,7 @@
 package net.evmodder.ChatManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -18,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import net.evmodder.EvLib.extras.TellrawUtils.Component;
 import net.evmodder.EvLib.extras.TellrawUtils.Format;
-import net.evmodder.EvLib.extras.TellrawUtils.FormatFlag;
 import net.evmodder.EvLib.extras.TellrawUtils.HoverEvent;
 import net.evmodder.EvLib.extras.TellrawUtils.ListComponent;
 import net.evmodder.EvLib.extras.TellrawUtils.RawTextComponent;
@@ -108,7 +108,7 @@ class AsyncChatListener implements Listener{
 		if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()){
 			ListComponent parentPropertiesComp = new ListComponent(new RawTextComponent(
 					/*text=*/"", /*insert=*/null, /*click=*/null, hoverAction, /*color=*/rarityColor,
-					/*formats=*/new FormatFlag[]{new FormatFlag(Format.ITALIC, true)}));
+					/*formats=*/Collections.singletonMap(Format.ITALIC, true)));
 			String rawDisplayName = getDisplayName(item);
 			parentPropertiesComp.addComponent(TellrawUtils.parseComponentFromString(rawDisplayName));
 			return parentPropertiesComp;
@@ -241,7 +241,7 @@ class AsyncChatListener implements Listener{
 		if(DISPLAY_ITEMS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.displayitems") && chat.matches(".*?\\[[i1-9]\\].*?")){
 			chat = String.format(evt.getFormat(), evt.getPlayer().getDisplayName()+ChatColor.RESET, chat); // The fully-formed chat message
 			chat = chat.replaceAll("\\[[(i1-9)]\\]", "[$0]"); // Add an extra layer of brackets
-			ListComponent comp = TellrawUtils.convertHexColorsToComponents(chat);
+			ListComponent comp = TellrawUtils.convertHexColorsToComponentsWithReset(chat);
 			if(chat.contains("[i]")){
 				ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
 				comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
