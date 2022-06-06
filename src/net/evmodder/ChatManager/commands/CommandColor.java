@@ -13,7 +13,13 @@ import net.evmodder.EvLib.extras.TextUtils;
 
 public class CommandColor extends EvCommand{
 	private final ChatManager pl;
-	public CommandColor(ChatManager pl){super(pl); this.pl=pl;}
+	private final boolean SET_NICKNAME, SET_DISPLAYNAME = true, SET_TAG = true;
+
+	public CommandColor(ChatManager pl){
+		super(pl);
+		this.pl=pl;
+		SET_NICKNAME = pl.getConfig().getBoolean("set-nickname-when-setting-color", false);
+	}
 
 	private void runCommand(final String cmd){
 		pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), cmd);
@@ -86,17 +92,17 @@ public class CommandColor extends EvCommand{
 			String rawNick = ChatColor.stripColor(colorNick);
 			if(!sender.hasPermission("chatmanager.command.color.custom") || !rawNick.equalsIgnoreCase(sender.getName())){
 				sender.sendMessage(ChatColor.GRAY+"Please provide just a single character or color-code");
-				pl.getLogger().info("color: "+colorId);
+//				pl.getLogger().info("color: "+colorId);
 			}
 			else if(!rawNick.equals(sender.getName())){
 				sender.sendMessage(ChatColor.GRAY+"Please use your exact name (case sensitive)");
 			}
 			else{
 				if(!sender.hasPermission("chatmanager.command.color.formats")) args[0] = TextUtils.stripFormatsOnly(args[0], '&');
-				((Player)sender).setDisplayName(TextUtils.translateAlternateColorCodes('&', args[0]));
-				runCommand("nick "+sender.getName()+" "+args[0]);
+				if(SET_DISPLAYNAME) ((Player)sender).setDisplayName(TextUtils.translateAlternateColorCodes('&', args[0]));
+				if(SET_NICKNAME) runCommand("nick "+sender.getName()+" "+args[0]);
+				if(SET_TAG) ((Player)sender).addScoreboardTag("color_nick");
 				sender.sendMessage(ChatColor.GREEN+"Color set!");
-				((Player)sender).addScoreboardTag("color_nick");
 			}
 			return true;
 		}
@@ -104,23 +110,26 @@ public class CommandColor extends EvCommand{
 		// Got to here, update their nickname!
 		int cutBeforeIdx = nameIdx;
 		while(cutBeforeIdx > 1 && displayName.charAt(cutBeforeIdx-2) == ChatColor.COLOR_CHAR) cutBeforeIdx -= 2;
-		String textBeforeName = displayName.substring(0, cutBeforeIdx).replace(ChatColor.COLOR_CHAR, '&');
-		String textAfterName = displayName.substring(nameIdx+sender.getName().length()).replace(ChatColor.COLOR_CHAR, '&');
+		final String textBeforeName = displayName.substring(0, cutBeforeIdx).replace(ChatColor.COLOR_CHAR, '&');
+		final String textAfterName = displayName.substring(nameIdx+sender.getName().length()).replace(ChatColor.COLOR_CHAR, '&');
 
 		if(colorId.equals("f") || colorId.equals("r")){
-			if(textBeforeName.isEmpty() && textAfterName.isEmpty()) runCommand("nick "+sender.getName()+" off");
-			else runCommand("nick "+sender.getName()+" "+textBeforeName+sender.getName()+textAfterName);
-			((Player)sender).setDisplayName(sender.getName());
-			((Player)sender).removeScoreboardTag("color_nick");
+			if(SET_DISPLAYNAME) ((Player)sender).setDisplayName(sender.getName());
+			if(SET_NICKNAME){
+				if(textBeforeName.isEmpty() && textAfterName.isEmpty()) runCommand("nick "+sender.getName()+" off");
+				else runCommand("nick "+sender.getName()+" "+textBeforeName+sender.getName()+textAfterName);
+			}
+			if(SET_TAG) ((Player)sender).removeScoreboardTag("color_nick");
+			sender.sendMessage("Color removed");
 		}
 		else{
 			if(colorId.length() == 3) colorId =""+colorId.charAt(0)+colorId.charAt(0)+colorId.charAt(1)+colorId.charAt(1)+colorId.charAt(2)+colorId.charAt(2);
 			colorId = (colorId.length() == 1 ? "&" : "&#") + colorId;
 			final String newDisplayName = textBeforeName+colorId+sender.getName()+textAfterName;
-			((Player)sender).setDisplayName(newDisplayName);
-			runCommand("nick "+sender.getName()+" "+newDisplayName);
+			if(SET_DISPLAYNAME) ((Player)sender).setDisplayName(newDisplayName);
+			if(SET_NICKNAME) runCommand("nick "+sender.getName()+" "+newDisplayName);
+			if(SET_TAG) ((Player)sender).addScoreboardTag("color_nick");
 			sender.sendMessage(TextUtils.translateAlternateColorCodes('&', colorId)+"Color set!");
-			((Player)sender).addScoreboardTag("color_nick");
 		}
 		return true;
 	}
