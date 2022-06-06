@@ -87,12 +87,12 @@ public class CommandColor extends EvCommand{
 				return true;
 			}
 		}
+		// Single-char color code
 		else if(ReflectionUtils.getServerVersionString().compareTo("v1_16") < 0 || !isHex || !sender.hasPermission("chatmanager.command.color.hex")){
 			String colorNick = TextUtils.translateAlternateColorCodes('&', args[0]);
 			String rawNick = ChatColor.stripColor(colorNick);
 			if(!sender.hasPermission("chatmanager.command.color.custom") || !rawNick.equalsIgnoreCase(sender.getName())){
 				sender.sendMessage(ChatColor.GRAY+"Please provide just a single character or color-code");
-//				pl.getLogger().info("color: "+colorId);
 			}
 			else if(!rawNick.equals(sender.getName())){
 				sender.sendMessage(ChatColor.GRAY+"Please use your exact name (case sensitive)");
@@ -106,8 +106,7 @@ public class CommandColor extends EvCommand{
 			}
 			return true;
 		}
-
-		// Got to here, update their nickname!
+		//else: Hex color code
 		int cutBeforeIdx = nameIdx;
 		while(cutBeforeIdx > 1 && displayName.charAt(cutBeforeIdx-2) == ChatColor.COLOR_CHAR) cutBeforeIdx -= 2;
 		final String textBeforeName = displayName.substring(0, cutBeforeIdx).replace(ChatColor.COLOR_CHAR, '&');
@@ -126,7 +125,7 @@ public class CommandColor extends EvCommand{
 			if(colorId.length() == 3) colorId =""+colorId.charAt(0)+colorId.charAt(0)+colorId.charAt(1)+colorId.charAt(1)+colorId.charAt(2)+colorId.charAt(2);
 			colorId = (colorId.length() == 1 ? "&" : "&#") + colorId;
 			final String newDisplayName = textBeforeName+colorId+sender.getName()+textAfterName;
-			if(SET_DISPLAYNAME) ((Player)sender).setDisplayName(newDisplayName);
+			if(SET_DISPLAYNAME) ((Player)sender).setDisplayName(TextUtils.translateAlternateColorCodes('&', newDisplayName));
 			if(SET_NICKNAME) runCommand("nick "+sender.getName()+" "+newDisplayName);
 			if(SET_TAG) ((Player)sender).addScoreboardTag("color_nick");
 			sender.sendMessage(TextUtils.translateAlternateColorCodes('&', colorId)+"Color set!");
