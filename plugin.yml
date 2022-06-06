@@ -14,6 +14,13 @@ commands:
     permission: chatmanager.command
     permission-message: You do not have permission for this command.
 
+  color:
+    description: Change the color of your displayname
+    usage: /color c
+    aliases: [cl,format,colour,namecolor,namecolour,cnick]
+    permission: chatmanager.command.color
+    permission-message: You do not have permission to do this.
+
 permissions:
   chatmanager.command:
     description: Allows access to the /chatmanager command
@@ -106,3 +113,19 @@ permissions:
   chatmanager.displayitems:
     description: Replace the placeholder in chat with a hoverable item display
     default: true
+
+  chatmanager.command.color:
+    description: Permission to use /color
+    default: true
+
+  chatmanager.command.color.hex:
+    description: Permission to use hex codes in /color
+    default: true
+
+  chatmanager.command.color.custom:
+    description: Permission to use /color <full colored name here>
+    default: op
+
+  chatmanager.command.color.formats:
+    description: Permission to use formats in /color
+    default: op

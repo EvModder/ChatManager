@@ -17,11 +17,13 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import net.evmodder.EvLib.extras.TellrawUtils.ClickEvent;
 import net.evmodder.EvLib.extras.TellrawUtils.Component;
 import net.evmodder.EvLib.extras.TellrawUtils.Format;
 import net.evmodder.EvLib.extras.TellrawUtils.HoverEvent;
 import net.evmodder.EvLib.extras.TellrawUtils.ListComponent;
 import net.evmodder.EvLib.extras.TellrawUtils.RawTextComponent;
+import net.evmodder.EvLib.extras.TellrawUtils.TextClickAction;
 import net.evmodder.EvLib.extras.TellrawUtils.TextHoverAction;
 import net.evmodder.EvLib.extras.TellrawUtils.TranslationComponent;
 import net.evmodder.EvLib.extras.TellrawUtils;
@@ -40,7 +42,7 @@ class AsyncChatListener implements Listener{
 	final String FILTH_RESULT_COMMAND, SPAM_RESULT_COMMAND;
 	final String PLUGIN_PREFIX;
 	final int MAX_CHATS_PER_MINUTE, MAX_CHATS_PER_10S, MAX_CHATS_PER_SECOND;
-	final boolean DISPLAY_ITEMS;
+	final boolean DISPLAY_ITEMS, USE_DISPLAY_NAMES;
 	final String ITEM_REPLACEMENT;
 	final int JSON_LIMIT = 15000;//TODO: move to config
 	final String DEFAULT_ITEM_DISPLAY_COLOR = "#cccccc";
@@ -51,6 +53,7 @@ class AsyncChatListener implements Listener{
 		HANDLE_COLORS = pl.getConfig().getBoolean("chat-colors", true);
 		HANDLE_FORMATS = pl.getConfig().getBoolean("chat-formats", true);
 		DISPLAY_ITEMS = pl.getConfig().getBoolean("item-hover-display", true);
+		USE_DISPLAY_NAMES = pl.getConfig().getBoolean("use-player-displaynames", true);
 		ANTI_SPAM = pl.getConfig().getBoolean("anti-spam", false);
 		ANTI_CAPS = pl.getConfig().getBoolean("anti-caps", true);
 		SANITIZE_CHAT = pl.getConfig().getBoolean("sanitize-chat", true);
@@ -125,7 +128,7 @@ class AsyncChatListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerChat(AsyncPlayerChatEvent evt){
 		//if it is already cancelled or is something a plugin forced the player to say
 		if(evt.isCancelled() || !evt.isAsynchronous()) return;
@@ -134,7 +137,7 @@ class AsyncChatListener implements Listener{
 		final String pName = evt.getPlayer().getName();
 
 		//-------------------------------------------------------------------------
-		if(SANITIZE_CHAT && !VaultHook.hasPermission(evt.getPlayer(), "chatmanager.chatfilter.exempt")){
+		if(SANITIZE_CHAT && !evt.getPlayer().hasPermission("chatmanager.chatfilter.exempt")){
 			chat = chatFilter.filterOutBadWords(chat);
 
 			final String dePuncChat = ChatUtils.removeNonAlphanumeric(chat);
@@ -167,14 +170,14 @@ class AsyncChatListener implements Listener{
 			}
 		}
 		//-------------------------------------------------------------------------
-		if(HANDLE_FORMATS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.format")){
+		if(HANDLE_FORMATS && evt.getPlayer().hasPermission("chatmanager.format")){
 			chat = ChatUtils.determineFormatsByPermission(chat, evt.getPlayer());
 		}
-		if(HANDLE_COLORS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.color")){
+		if(HANDLE_COLORS && evt.getPlayer().hasPermission("chatmanager.color")){
 			chat = ChatUtils.determineColorsByPermission(chat, evt.getPlayer());
 		}
 		//-------------------------------------------------------------------------
-		if(ANTI_SPAM && !VaultHook.hasPermission(evt.getPlayer(), "chatmanager.spamfilter.exempt")){
+		if(ANTI_SPAM && !evt.getPlayer().hasPermission("chatmanager.spamfilter.exempt")){
 			if(lastChats.containsKey(evt.getPlayer().getUniqueId())){
 				lastChats.get(evt.getPlayer().getUniqueId()).add(0);
 			}
@@ -230,34 +233,54 @@ class AsyncChatListener implements Listener{
 		}
 		//-------------------------------------------------------------------------
 
-		if(DISPLAY_ITEMS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.displayitems")) chat = chat.replace("[I]", "[i]");
+		if(DISPLAY_ITEMS && evt.getPlayer().hasPermission("chatmanager.displayitems")) chat = chat.replace("[I]", "[i]");
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
 		if(evt.getMessage().equals(chat) == false){
-			pl.getLogger().info("Original Chat: "+pName+": "+evt.getMessage());
+			pl.getLogger().info("Original Chat: "+String.format(evt.getFormat(), pName, chat));
 			evt.setMessage(chat);
 		}
 
-		if(DISPLAY_ITEMS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.displayitems") && chat.matches(".*?\\[[i1-9]\\].*?")){
-			chat = String.format(evt.getFormat(), evt.getPlayer().getDisplayName()+ChatColor.RESET, chat); // The fully-formed chat message
-			chat = chat.replaceAll("\\[[(i1-9)]\\]", "[$0]"); // Add an extra layer of brackets
+		final boolean hasSharedItem = DISPLAY_ITEMS && evt.getPlayer().hasPermission("chatmanager.displayitems") && chat.matches(".*?\\[[i1-9]\\].*?");
+		if(USE_DISPLAY_NAMES || hasSharedItem){
+			final String chatName = (USE_DISPLAY_NAMES ? evt.getPlayer().getDisplayName()+ChatColor.RESET : pName);
+			final String chatNamePlaceholder = "<<<"+pName+">>>";
+			// The fully-formed chat message
+			chat = String.format(evt.getFormat(), chatNamePlaceholder, chat);
 			ListComponent comp = TellrawUtils.convertHexColorsToComponentsWithReset(chat);
-			if(chat.contains("[i]")){
-				ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
-				comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
-			}
-			for(int i=1; i<=9; ++i){
-				if(chat.contains("["+i+"]")){
-					ItemStack item = evt.getPlayer().getInventory().getItem(i-1);
-					if(item == null) item = new ItemStack(Material.AIR);
-					comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponent(item));
+
+			if(hasSharedItem){
+				chat = chat.replaceAll("\\[[(i1-9)]\\]", "[$0]"); // Add an extra layer of brackets
+				comp = TellrawUtils.convertHexColorsToComponentsWithReset(chat);
+				if(chat.contains("[i]")){
+					ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
+					comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
+				}
+				for(int i=1; i<=9; ++i){
+					if(chat.contains("["+i+"]")){
+						ItemStack item = evt.getPlayer().getInventory().getItem(i-1);
+						if(item == null) item = new ItemStack(Material.AIR);
+						comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponent(item));
+					}
 				}
 			}
+			final String selectorHoverText = pName+"\nType: Player\n"+evt.getPlayer().getUniqueId();
+			final String selectorClickSuggestText = "/tell "+pName+" ";
+			comp.replaceRawDisplayTextWithComponent(chatNamePlaceholder, new ListComponent(
+					new RawTextComponent(
+						/*text=*/"", /*insert=*/null,
+						new TextClickAction(ClickEvent.SUGGEST_COMMAND, selectorClickSuggestText),
+						new TextHoverAction(HoverEvent.SHOW_TEXT, selectorHoverText),
+						/*color=*/null, /*formats=*/null
+					),
+					TellrawUtils.convertHexColorsToComponentsWithReset(chatName)
+			));
 			evt.setCancelled(true);
 			evt.setMessage("");
 			final String compStr = comp.toString();
 			new BukkitRunnable(){@Override public void run(){
 				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
+//				pl.getServer().getLogger().info("chat msg: "+compStr);
 			}}.runTask(pl);
 		}
 	}

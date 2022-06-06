@@ -23,7 +23,7 @@ class SignChangeListener implements Listener{
 
 	@EventHandler
 	public void signPlaceEvent(SignChangeEvent evt){
-		if(evt.isCancelled() || VaultHook.hasPermission(evt.getPlayer(), "chatmanager.chatfilter.exempt")) return;
+		if(evt.isCancelled() || evt.getPlayer().hasPermission("chatmanager.chatfilter.exempt")) return;
 		
 		StringBuilder builder = new StringBuilder(' ');
 		builder.append(evt.getLine(0)); builder.append(" \n ");
@@ -37,10 +37,10 @@ class SignChangeListener implements Listener{
 		if(signText.equals(filteredText) == false){
 			String[] signLines = filteredText.replace(" \n", "\n").replace("\n ", "\n").split("\n");
 			for(int i = 0; i < 4; ++i){
-				if(HANDLE_COLORS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.signcolor")){
+				if(HANDLE_COLORS && evt.getPlayer().hasPermission("chatmanager.signcolor")){
 					signLines[i] = ChatUtils.determineColorsByPermission(signLines[i], evt.getPlayer());
 				}
-				if(HANDLE_FORMATS && VaultHook.hasPermission(evt.getPlayer(), "chatmanager.signformat")){
+				if(HANDLE_FORMATS && evt.getPlayer().hasPermission("chatmanager.signformat")){
 					signLines[i] = ChatUtils.determineFormatsByPermission(signLines[i], evt.getPlayer());
 				}
 				evt.setLine(i, signLines[i]);

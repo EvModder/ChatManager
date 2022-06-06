@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import net.evmodder.ChatManager.commands.CommandColor;
 import net.evmodder.EvLib.EvPlugin;
 import net.evmodder.EvLib.Updater;
 
@@ -23,9 +24,13 @@ public final class ChatManager extends EvPlugin implements Listener{
 			new Updater(/*plugin=*/this, /*id=*/63180, getFile(), Updater.UpdateType.DEFAULT, /*announce=*/true);
 		}
 //		instance = this;
-		new VaultHook(this);
+//		new VaultHook(this);
 		profanityFilter = new ProfanityFilter(this);
 
+		// commands
+		new CommandColor(this);
+
+		// listeners
 		getServer().getPluginManager().registerEvents(new AsyncChatListener(this), this);
 		getServer().getPluginManager().registerEvents(new CommandPreprocessListener(this), this);
 		getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
@@ -37,7 +42,7 @@ public final class ChatManager extends EvPlugin implements Listener{
 			if(args.length == 0) args = new String[]{"help"};
 			else args[0] = args[0].toLowerCase();
 			//=================================================================================================================
-			if(args[0].contains("spam") && VaultHook.hasPermission(sender, "chatmanager.togglespam")){
+			if(args[0].contains("spam") && sender.hasPermission("chatmanager.togglespam")){
 //				if(args.length >= 2){
 //					if(args[1].equalsIgnoreCase("on")) antiSpam = true;
 //					else antiSpam = false;
@@ -47,7 +52,7 @@ public final class ChatManager extends EvPlugin implements Listener{
 //				if(antiSpam) sender.sendMessage("SpamGuard Enabled.");
 //				else sender.sendMessage("SpamGuard Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
-			else if(args[0].contains("filth") && VaultHook.hasPermission(sender, "chatmanager.togglefilth")){
+			else if(args[0].contains("filth") && sender.hasPermission("chatmanager.togglefilth")){
 //				if(args.length >= 2){
 //					if(args[1].equalsIgnoreCase("on")) antiChatFilth = true;
 //					else antiChatFilth = false;
@@ -58,7 +63,7 @@ public final class ChatManager extends EvPlugin implements Listener{
 //				else sender.sendMessage("FilthGuard Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
 			//~ ~ ~ ~ ~ ~ ~ ~
-			else if(args[0].contains("color") && VaultHook.hasPermission(sender, "chatmanager.togglecolor")){
+			else if(args[0].contains("color") && sender.hasPermission("chatmanager.togglecolor")){
 //				if(args.length >= 2){
 //					if(args[1].equalsIgnoreCase("on")) chatColor = true;
 //					else chatColor = false;
@@ -68,7 +73,7 @@ public final class ChatManager extends EvPlugin implements Listener{
 //				if(chatColor) sender.sendMessage("Chat-Colors Enabled.");
 //				else sender.sendMessage("Chat-Colors Disabled.");
 			}//-----------------------------------------------------------------------------------------------------------
-			else if(args[0].contains("format") && VaultHook.hasPermission(sender, "chatmanager.toggleformat")){
+			else if(args[0].contains("format") && sender.hasPermission("chatmanager.toggleformat")){
 //				if(args.length >= 2){
 //					if(args[1].equalsIgnoreCase("on")) chatFormat = true;
 //					else chatFormat = false;
@@ -88,7 +93,7 @@ public final class ChatManager extends EvPlugin implements Listener{
 							"§7§l------------------------------------");
 			}
 			else if((args[0].equals("reload") || args[0].equals("load") || args[0].equals("config"))
-					&& VaultHook.hasPermission(sender, "chatmanager.reload")){
+					&& sender.hasPermission("chatmanager.reload")){
 				HandlerList.unregisterAll((Plugin)this);
 				onEnable();
 				sender.sendMessage("§aFiles Reloaded!");

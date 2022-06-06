@@ -25,7 +25,7 @@ class CommandPreprocessListener implements Listener{
 	@EventHandler
 	public void preCommand(PlayerCommandPreprocessEvent evt){
 		if(evt.getMessage().contains(" ") && SANITIZE_COMMANDS && !evt.isCancelled()
-				&& !VaultHook.hasPermission(evt.getPlayer(), "chatmanager.chatfilter.exempt")){
+				&& !evt.getPlayer().hasPermission("chatmanager.chatfilter.exempt")){
 			StringBuilder builder = new StringBuilder(' ');
 			String[] args = evt.getMessage().split(" ");
 			for(int i = 1; i < args.length; ++i){
