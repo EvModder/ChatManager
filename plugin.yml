@@ -17,7 +17,8 @@ commands:
   color:
     description: Change the color of your displayname
     usage: /color c
-    aliases: [cl,format,colour,namecolor,namecolour,cnick]
+    aliases: [colour]
+    #,namecolor,namecolour,cnick,cl,format]
     permission: chatmanager.command.color
     permission-message: You do not have permission to do this.
 

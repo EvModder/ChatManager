@@ -1,7 +1,7 @@
 package net.evmodder.ChatManager;
 
 import java.util.HashMap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import net.evmodder.EvLib.FileIO;
 
 public class ProfanityFilter{
