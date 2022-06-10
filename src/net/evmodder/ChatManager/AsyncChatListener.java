@@ -127,6 +127,10 @@ class AsyncChatListener implements Listener{
 			);
 		}
 	}
+	Component getItemComponentWithAmount(ItemStack item){
+		if(item.getAmount() <= 1) return getItemComponent(item);
+		else return new ListComponent(getItemComponent(item), new RawTextComponent(ChatColor.YELLOW+" x"+item.getAmount()));
+	}
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerChat(AsyncPlayerChatEvent evt){
@@ -233,7 +237,6 @@ class AsyncChatListener implements Listener{
 		}
 		//-------------------------------------------------------------------------
 
-		if(DISPLAY_ITEMS && evt.getPlayer().hasPermission("chatmanager.displayitems")) chat = chat.replace("[I]", "[i]");
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
 		if(evt.getMessage().equals(chat) == false){
@@ -241,7 +244,9 @@ class AsyncChatListener implements Listener{
 			evt.setMessage(chat);
 		}
 
-		final boolean hasSharedItem = DISPLAY_ITEMS && evt.getPlayer().hasPermission("chatmanager.displayitems") && chat.matches(".*?\\[[i1-9]\\].*?");
+		final boolean canShareItem = DISPLAY_ITEMS && evt.getPlayer().hasPermission("chatmanager.displayitems");
+		final boolean hasSharedItem = canShareItem && chat.matches(".*?\\[[i1-9]\\].*?");
+		if(canShareItem) chat = chat.replace("[I]", "[i]");
 		if(USE_DISPLAY_NAMES || hasSharedItem){
 			final String chatName = (USE_DISPLAY_NAMES ? evt.getPlayer().getDisplayName()+ChatColor.RESET : pName);
 			final String chatNamePlaceholder = "<<<"+pName+">>>";
@@ -254,13 +259,13 @@ class AsyncChatListener implements Listener{
 				comp = TellrawUtils.convertHexColorsToComponentsWithReset(chat);
 				if(chat.contains("[i]")){
 					ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
-					comp.replaceRawDisplayTextWithComponent("[i]", getItemComponent(hand));
+					comp.replaceRawDisplayTextWithComponent("[i]", getItemComponentWithAmount(hand));
 				}
 				for(int i=1; i<=9; ++i){
 					if(chat.contains("["+i+"]")){
 						ItemStack item = evt.getPlayer().getInventory().getItem(i-1);
 						if(item == null) item = new ItemStack(Material.AIR);
-						comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponent(item));
+						comp.replaceRawDisplayTextWithComponent("["+i+"]", getItemComponentWithAmount(item));
 					}
 				}
 			}
