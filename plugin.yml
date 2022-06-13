@@ -1,8 +1,11 @@
 name: ChatManager
 main: net.evmodder.ChatManager.ChatManager
-author: EvModder/EvDoc
+author: EvModder
+website: https://github.com/EvModder/ChatManager
+description: Chat control and formatting features.
 #2=major rewrite, EvLib, DisplayItem
-version: 2.0
+#1=DisplayItem amount, /color, name click -> suggest /tell
+version: 2.1
 softdepend: [Vault]
 api-version: 1.13
 
