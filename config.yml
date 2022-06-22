@@ -5,6 +5,8 @@ max-chats-per-minute: 35
 max-chats-per-10s: 15
 max-chats-per-second: 4
 
+log-chat-to-console: true
+
 set-nickname-when-setting-color: false
 use-player-displaynames: true
 item-hover-display: true

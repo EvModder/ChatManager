@@ -36,7 +36,7 @@ class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
 	private Map<UUID, List<Integer>> lastChats;
 	final ChatManager pl;
-	final boolean HANDLE_COLORS, HANDLE_FORMATS;
+	final boolean HANDLE_COLORS, HANDLE_FORMATS, LOG_CHATS;
 	final boolean SANITIZE_CHAT, ANTI_SPAM, ANTI_CAPS;
 	final String DEFAULT_BADWORD_SUB;
 	final String FILTH_RESULT_COMMAND, SPAM_RESULT_COMMAND;
@@ -66,6 +66,7 @@ class AsyncChatListener implements Listener{
 		MAX_CHATS_PER_10S = pl.getConfig().getInt("max-chats-per-10s", 15);
 		MAX_CHATS_PER_SECOND = pl.getConfig().getInt("max-chats-per-second", 4);
 		ITEM_REPLACEMENT = pl.getConfig().getString("item-replacement", "[i]");
+		LOG_CHATS = pl.getConfig().getBoolean("log-chat-to-console", true);
 	}
 
 	private boolean alreadyRunning;
@@ -240,7 +241,7 @@ class AsyncChatListener implements Listener{
 		chat = chat.trim();
 		// If the new chat does not match the original message, log the original to the console
 		if(evt.getMessage().equals(chat) == false){
-			pl.getLogger().info("Original Chat: "+String.format(evt.getFormat(), pName, chat));
+			pl.getLogger().info("Unfiltered Chat: "+String.format(evt.getFormat(), pName, chat));
 			evt.setMessage(chat);
 		}
 
@@ -283,9 +284,10 @@ class AsyncChatListener implements Listener{
 			evt.setCancelled(true);
 			evt.setMessage("");
 			final String compStr = comp.toString();
+			final String plainText = comp.toPlainText();
 			new BukkitRunnable(){@Override public void run(){
 				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
-//				pl.getServer().getLogger().info("chat msg: "+compStr);
+				if(LOG_CHATS) pl.getServer().getLogger().info(plainText);
 			}}.runTask(pl);
 		}
 	}
