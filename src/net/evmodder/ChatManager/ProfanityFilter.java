@@ -14,7 +14,8 @@ public class ProfanityFilter{
 	ProfanityFilter(ChatManager pl){
 		badWords = new HashMap<String, String>();
 
-		loadBadWords(pl, badWords, JunkUtils.loadResource(pl, "defaultblocked.txt"));
+		try{loadBadWords(pl, badWords, JunkUtils.loadResource(pl, "defaultblocked.txt"));}
+		catch(NullPointerException e){/*happens for /reload*/}
 		loadBadWords(pl, badWords, FileIO.loadFile("blocked-words.txt",
 					"thisisabadword,badword248,a@@ , word45 ,CRAPS**T,lolbutts,LMFAO=haha,flycoder=qua-112" +
 				   "\n\n# Spaces are fine to use, but please realize that " +
