@@ -1,36 +1,61 @@
-anti-spam: false
-anti-caps: true
-spam-result-command: "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P"
-max-chats-per-minute: 35
-max-chats-per-10s: 15
-max-chats-per-second: 4
-
-log-chat-to-console: true
-
-set-nickname-when-setting-color: false
-use-player-displaynames: true
-item-hover-display: true
-item-replacement: "[i]" #todo: not currently used
+################################################################################
+#                            Chat Filter / Matching                            #
+################################################################################
 sanitize-chat: true
 sanitize-signs: true
 sanitize-commands: true
-sanitize-commands-start-argument: 2
-filth-result-command: ""
 
-# Warning: the following configuration option can cause harmless
-# words to be blocked if their reversed spelling matches a bad word.
+# Option to disable filtering on the first X arguments of a command (eg "/f ")
+sanitize-commands-start-argument: 2
+
+# A command to run whenever a player uses a bad word (eg "/mute %name% 5m")
+badword-result-command: ''
+
+# If more then 55% of a long chat message is uppercase, make it lowercase
+anti-caps: true
+
+# If a substitution isn't specified in blocked-words.txt, this will get used
+# Set to empty to disable, or to a single character to auto-match word length
+default-badword-replacement: '*'
+
+# Warning: This option can cause harmless words to be blocked if their reverse
+# spelling matches a blocked word
 check-badwords-backwards: false
 
-default-badword-replacement: "*"
+
+################################################################################
+#                                 Spam Limiter                                 #
+################################################################################
+anti-spam: false
+spam-result-command: "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P"
+max-chats-per-second: 4
+max-chats-per-10s: 15
+max-chats-per-minute: 35
+
+
+################################################################################
+#                               General Features                               #
+################################################################################
+# Automatically update the plugin (might be unreliable)
+update-plugin: true
+
+plugin-message-prefix: "&3<&aC&3>&f "
+log-chat-to-console: true
+
+# For the /color command, also trigger /nick (Essentials compatibility)
+set-nickname-when-setting-color: false
+
+# In [i] and other chat-update events, should we use the player's DisplayName?
+use-player-displaynames: true
+
+# Enable [item-replacement] feature
+item-hover-display: true
+item-replacement: "[i]" #todo: changing this does not work currently
+
 
 # It is generally good to disable these if you have another plugin
-# that handles sign/chat color (such as EssentialsChat)
+# that handles sign/chat color permissions (such as EssentialsChat or Purpur)
 chat-colors: true
 chat-formats: true
 sign-colors: true
 sign-formats: true
-
-# Automatically update the plugin
-update-plugin: true
-
-plugin-message-prefix: "&3<&aC&3>&f "

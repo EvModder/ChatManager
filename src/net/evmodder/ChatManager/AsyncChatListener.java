@@ -39,11 +39,11 @@ class AsyncChatListener implements Listener{
 	final boolean HANDLE_COLORS, HANDLE_FORMATS, LOG_CHATS;
 	final boolean SANITIZE_CHAT, ANTI_SPAM, ANTI_CAPS;
 	final String DEFAULT_BADWORD_SUB;
-	final String FILTH_RESULT_COMMAND, SPAM_RESULT_COMMAND;
+	final String BADWORD_RESULT_COMMAND, SPAM_RESULT_COMMAND;
 	final String PLUGIN_PREFIX;
 	final int MAX_CHATS_PER_MINUTE, MAX_CHATS_PER_10S, MAX_CHATS_PER_SECOND;
 	final boolean DISPLAY_ITEMS, USE_DISPLAY_NAMES;
-	final String ITEM_REPLACEMENT;
+	final String ITEM_REPLACEMENT;//TODO: use this
 	final int JSON_LIMIT = 15000;//TODO: move to config
 	final String DEFAULT_ITEM_DISPLAY_COLOR = "#cccccc";
 
@@ -59,7 +59,7 @@ class AsyncChatListener implements Listener{
 		SANITIZE_CHAT = pl.getConfig().getBoolean("sanitize-chat", true);
 		chatFilter = SANITIZE_CHAT ? pl.profanityFilter : null;
 		DEFAULT_BADWORD_SUB = pl.getConfig().getString("default-badword-replacement", "*");
-		FILTH_RESULT_COMMAND = pl.getConfig().getString("filth-result-command", "");
+		BADWORD_RESULT_COMMAND = pl.getConfig().getString("badword-result-command", "").trim();
 		SPAM_RESULT_COMMAND = pl.getConfig().getString("spam-result-command", "kick %name% §cReceived TMC/TMS from client\\\\n§fEither lag or spam... :P");
 		PLUGIN_PREFIX = TextUtils.translateAlternateColorCodes('&', pl.getConfig().getString("plugin-message-prefix", "&3<&aC&3>&f "));
 		MAX_CHATS_PER_MINUTE = pl.getConfig().getInt("max-chats-per-minute", 35);
@@ -165,8 +165,8 @@ class AsyncChatListener implements Listener{
 			if(!chat.equals(' '+evt.getMessage()+' ')){// message has changed
 				// they've been naughty!
 				// TODO: maybe add some punishment or something here
-				if(FILTH_RESULT_COMMAND != null && !FILTH_RESULT_COMMAND.isEmpty()){
-					String command = FILTH_RESULT_COMMAND.replace("%name%", pName);
+				if(BADWORD_RESULT_COMMAND != null && !BADWORD_RESULT_COMMAND.isEmpty()){
+					String command = BADWORD_RESULT_COMMAND.replace("%name%", pName);
 					pl.getLogger().info("Running command: "+command);
 					new BukkitRunnable(){@Override public void run(){
 						pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), command);
