@@ -48,4 +48,4 @@ class CommandPreprocessListener implements Listener{
 			evt.getPlayer().sendMessage(PLUGIN_PREFIX+"§7Really now?");
 		}
 	}
-	}
+}
