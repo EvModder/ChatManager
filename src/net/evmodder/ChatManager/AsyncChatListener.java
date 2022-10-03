@@ -3,6 +3,7 @@ package net.evmodder.ChatManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -37,7 +38,8 @@ class AsyncChatListener implements Listener{
 	private Map<UUID, List<Integer>> lastChats;
 	final ChatManager pl;
 	final boolean HANDLE_COLORS, HANDLE_FORMATS, LOG_CHATS;
-	final boolean SANITIZE_CHAT, ANTI_SPAM, ANTI_CAPS;
+	final boolean SANITIZE_CHAT, ANTI_SPAM, ANTI_CAPS, SEND_FAKE_EVT_TO_PLUGINS = true;
+	final HashSet<AsyncPlayerChatEvent> fakeChatEvents = new HashSet<>();
 	final String DEFAULT_BADWORD_SUB;
 	final String BADWORD_RESULT_COMMAND, SPAM_RESULT_COMMAND;
 	final String PLUGIN_PREFIX;
@@ -133,10 +135,11 @@ class AsyncChatListener implements Listener{
 		else return new ListComponent(getItemComponent(item), new RawTextComponent(ChatColor.YELLOW+" x"+item.getAmount()));
 	}
 
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerChat(AsyncPlayerChatEvent evt){
 		//if it is already cancelled or is something a plugin forced the player to say
 		if(evt.isCancelled() || !evt.isAsynchronous()) return;
+		synchronized(fakeChatEvents){if(fakeChatEvents.remove(evt)) return;}
 
 		String chat = ' '+evt.getMessage()+' ';
 		final String pName = evt.getPlayer().getName();
@@ -286,9 +289,16 @@ class AsyncChatListener implements Listener{
 			final String compStr = comp.toString();
 			final String plainText = comp.toPlainText();
 			new BukkitRunnable(){@Override public void run(){
+				// TODO: check if "@a" == evt.getRecipients()
 				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
 				if(LOG_CHATS) pl.getServer().getLogger().info(plainText);
 			}}.runTask(pl);
+			if(SEND_FAKE_EVT_TO_PLUGINS){
+				final String hackyMsgWithoutName = plainText.substring(plainText.indexOf(' ')+1);
+				AsyncPlayerChatEvent newEvt = new AsyncPlayerChatEvent(/*async=*/true, evt.getPlayer(), hackyMsgWithoutName, evt.getRecipients());
+				synchronized(fakeChatEvents){fakeChatEvents.add(newEvt);}
+				pl.getServer().getPluginManager().callEvent(newEvt);
+			}
 		}
 	}
 }
