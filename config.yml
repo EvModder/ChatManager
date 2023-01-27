@@ -1,6 +1,6 @@
-################################################################################
-#                            Chat Filter / Matching                            #
-################################################################################
+##############################################################################
+#                           Chat Filter / Matching                           #
+##############################################################################
 sanitize-chat: true
 sanitize-signs: true
 sanitize-commands: true
@@ -23,9 +23,9 @@ default-badword-replacement: '*'
 check-badwords-backwards: false
 
 
-################################################################################
-#                                 Spam Limiter                                 #
-################################################################################
+##############################################################################
+#                                Spam Limiter                                #
+##############################################################################
 anti-spam: false
 spam-result-command: "kick %name% §cReceived TMC/TMS from client\\n§fEither lag or spam... :P"
 max-chats-per-second: 4
@@ -33,28 +33,43 @@ max-chats-per-10s: 15
 max-chats-per-minute: 35
 
 
-################################################################################
-#                               General Features                               #
-################################################################################
+##############################################################################
+#                                Item Sharing                                #
+##############################################################################
+# Enable [item-replacement] feature
+item-hover-display: true
+
+# To embed item hover-displays in chat, players can put {prefix}{sub}{suffix}
+# in their message and ChatManager will substitute it for a display component.
+# "sub" can be repeated 2+ times to escape the subtitution.
+# Default format is [i] as seen below
+item-share-prefix: '['
+item-share-suffix: ']'
+item-share-mainhand: 'i'
+item-share-offhand: 'o'
+# Note: Items in hotbar can be shared with 1-9
+
+# The limit in bytes of item-display components sent to client per message
+message-json-limit: 15000
+
+
+##############################################################################
+#                              General Features                              #
+##############################################################################
 # Automatically update the plugin (might be unreliable)
 update-plugin: true
+
+# Should we use the player's DisplayName in their chats?
+use-player-displaynames: true
 
 plugin-message-prefix: "&3<&aC&3>&f "
 log-chat-to-console: true
 
-# For the /color command, also trigger /nick (Essentials compatibility)
+# For the /color command, trigger /nick (for Essentials compatibility)
 set-nickname-when-setting-color: false
 
-# In [i] and other chat-update events, should we use the player's DisplayName?
-use-player-displaynames: true
-
-# Enable [item-replacement] feature
-item-hover-display: true
-item-replacement: "[i]" #todo: changing this does not work currently
-
-
-# It is generally good to disable these if you have another plugin
-# that handles sign/chat color permissions (such as EssentialsChat or Purpur)
+# It is recommended to disable these if you have a plugin or server that
+# already provides sign/chat color permissions. Eg: EssentialsChat or Purpur
 chat-colors: true
 chat-formats: true
 sign-colors: true
