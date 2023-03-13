@@ -20,6 +20,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import net.evmodder.EvLib.extras.TellrawUtils.ClickEvent;
 import net.evmodder.EvLib.extras.TellrawUtils.Component;
 import net.evmodder.EvLib.extras.TellrawUtils.Format;
@@ -46,7 +48,7 @@ class AsyncChatListener implements Listener{
 	final String BADWORD_RESULT_COMMAND, SPAM_RESULT_COMMAND;
 	final String PLUGIN_PREFIX;
 	final int MAX_CHATS_PER_MINUTE, MAX_CHATS_PER_10S, MAX_CHATS_PER_SECOND;
-	final boolean DISPLAY_ITEMS, USE_DISPLAY_NAMES;
+	final boolean DISPLAY_ITEMS, USE_DISPLAY_NAMES, USE_TEAM_COLORS, USE_MAIN_SCOREBOARD;
 	final int JSON_LIMIT;
 	final String DEFAULT_ITEM_DISPLAY_COLOR = "#cccccc";
 	final String DI_PREFIX, DI_SUFFIX, DI_MAINHAND, DI_OFFHAND;
@@ -60,6 +62,8 @@ class AsyncChatListener implements Listener{
 		PLUGIN_PREFIX = TextUtils.translateAlternateColorCodes('&', pl.getConfig().getString("plugin-message-prefix", "&3<&aC&3>&f "));
 		// Cosmetic
 		USE_DISPLAY_NAMES = pl.getConfig().getBoolean("use-player-displaynames", true);
+		USE_TEAM_COLORS = pl.getConfig().getBoolean("use-player-teams", true);
+		USE_MAIN_SCOREBOARD = pl.getConfig().getBoolean("use-main-scoreboard", true);
 		HANDLE_COLORS = pl.getConfig().getBoolean("chat-colors", true);
 		HANDLE_FORMATS = pl.getConfig().getBoolean("chat-formats", true);
 		// Filter
@@ -277,8 +281,20 @@ class AsyncChatListener implements Listener{
 		if(evt.getMessage().equals(chat) == false) evt.setMessage(chat);
 
 		//-------------------------------------------------------------------------
-		if(USE_DISPLAY_NAMES || hasSharedItem){
-			final String chatName = (USE_DISPLAY_NAMES ? evt.getPlayer().getDisplayName()+ChatColor.RESET : pName);
+		if(USE_DISPLAY_NAMES || USE_TEAM_COLORS || hasSharedItem){
+			String prefix = "", suffix = "";
+			if(USE_TEAM_COLORS){
+				final Scoreboard scoreboard = USE_MAIN_SCOREBOARD
+						? pl.getServer().getScoreboardManager().getMainScoreboard() : evt.getPlayer().getScoreboard();
+				final Team team = scoreboard.getEntryTeam(evt.getPlayer().getName());
+				if(team != null){
+					// Note: Advanced selctors/tellraw comps are unsupported here (blame Bukkit API for Teams)
+					prefix = team.getColor() + team.getPrefix() + team.getColor(); // Yep, this is how it works in vanilla *shrug*
+					suffix = team.getSuffix();
+				}
+			}
+			final String chatName = prefix+(USE_DISPLAY_NAMES ? evt.getPlayer().getDisplayName()
+					+(TextUtils.getCurrentColorAndFormats(evt.getPlayer().getDisplayName()).isEmpty() ? "" : ChatColor.RESET) : pName)+suffix;
 			final String chatNamePlaceholder = "<<<"+pName+">>>";
 			// The fully-formed chat message
 			chat = String.format(evt.getFormat(), chatNamePlaceholder, chat);

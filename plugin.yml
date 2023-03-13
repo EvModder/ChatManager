@@ -4,9 +4,9 @@ author: EvModder
 website: https://github.com/EvModder/ChatManager
 description: Chat control and formatting features.
 #2=major rewrite, EvLib, DisplayItem
-#1=DisplayItem amount, /color, name click -> suggest /tell
-#1=fix printing chat in console, updated config.yml format
-version: 2.1.1
+#2=Support for teams, updated /color
+#0=
+version: 2.2.0
 softdepend: [Vault]
 api-version: 1.13
 

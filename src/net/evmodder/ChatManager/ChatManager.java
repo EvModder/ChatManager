@@ -3,7 +3,6 @@ package net.evmodder.ChatManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import net.evmodder.ChatManager.commands.CommandColor;
 import net.evmodder.EvLib.EvPlugin;
@@ -15,7 +14,7 @@ import net.evmodder.EvLib.Updater;
 //TODO: Discord integration
 //TODO: multiple-account spam detection
 //TEST: Merge with DisplayItem
-public final class ChatManager extends EvPlugin implements Listener{
+public final class ChatManager extends EvPlugin{
 	ProfanityFilter profanityFilter;
 
 	@Override public void onEvEnable(){
@@ -34,6 +33,8 @@ public final class ChatManager extends EvPlugin implements Listener{
 		getServer().getPluginManager().registerEvents(new AsyncChatListener(this), this);
 		getServer().getPluginManager().registerEvents(new CommandPreprocessListener(this), this);
 		getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
+		//1.19.1+
+//		getServer().getPluginManager().registerEvents(new ServerPingListener(this), this);
 	}
 
 	//TODO: actually have working commands

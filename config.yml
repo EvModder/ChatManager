@@ -1,9 +1,9 @@
 ##############################################################################
 #                           Chat Filter / Matching                           #
 ##############################################################################
-sanitize-chat: true
-sanitize-signs: true
-sanitize-commands: true
+sanitize-chat: false
+sanitize-signs: false
+sanitize-commands: false
 
 # Option to disable filtering on the first X arguments of a command (eg "/f ")
 sanitize-commands-start-argument: 2
@@ -61,6 +61,11 @@ update-plugin: true
 
 # Should we use the player's DisplayName in their chats?
 use-player-displaynames: true
+
+# Should we use the player's current Team settings in their chats?
+use-player-teams: true
+# Should we use the main (or per-player) scoreboard for Team lookups?
+use-main-scoreboard: true
 
 plugin-message-prefix: "&3<&aC&3>&f "
 log-chat-to-console: true
