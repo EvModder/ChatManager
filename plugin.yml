@@ -14,7 +14,7 @@ commands:
   chatm:
     description: Commands for ChatManager.
     usage: Do /chatm help for ChatManager commands
-    aliases: [chat,evcm,chatmanager,chat-manager,cm,evchatmanager]
+    aliases: [chat,evcm,chatmanager,cm]
     permission: chatmanager.command
     permission-message: You do not have permission for this command.
 

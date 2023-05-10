@@ -88,9 +88,9 @@ class AsyncChatListener implements Listener{
 		DI_MAINHAND = pl.getConfig().getString("item-share-mainhand", "i");
 		DI_OFFHAND = pl.getConfig().getString("item-share-offhand", "o");
 		DI_INNER_PAT = Pattern.quote(DI_MAINHAND)+"|"+Pattern.quote(DI_OFFHAND)+"|[1-9]";
-		DI_FULL_PAT = Pattern.quote(DI_PREFIX)+DI_INNER_PAT+Pattern.quote(DI_SUFFIX);
-		DI_FULL_ESCAPE_PAT = Pattern.quote(DI_PREFIX)+"(?:"+DI_INNER_PAT+")(\1+)"+Pattern.quote(DI_SUFFIX);
-		DI_FULL_ESCAPE_REPL = Pattern.quote(DI_PREFIX)+"$2"+Pattern.quote(DI_SUFFIX);
+		DI_FULL_PAT = Pattern.quote(DI_PREFIX)+"(?:"+DI_INNER_PAT+")"+Pattern.quote(DI_SUFFIX);
+		DI_FULL_ESCAPE_PAT = Pattern.quote(DI_PREFIX)+"("+DI_INNER_PAT+")(\\1+)"+Pattern.quote(DI_SUFFIX);
+		DI_FULL_ESCAPE_REPL = Matcher.quoteReplacement(DI_PREFIX)+"$2"+Matcher.quoteReplacement(DI_SUFFIX);
 		DI_FULL_CAPTURE_PAT = "("+DI_FULL_PAT+")";
 		DI_FULL_CAPTURE_REPL = Matcher.quoteReplacement(DI_PREFIX)+"$1"+Matcher.quoteReplacement(DI_SUFFIX);
 		DI_FULL_MAINHAND = DI_PREFIX + DI_MAINHAND + DI_SUFFIX;
@@ -259,6 +259,7 @@ class AsyncChatListener implements Listener{
 			//Keep players from repeating messages
 			/** TODO: make this? **/
 		}
+		chat = chat.trim();
 		final boolean nautyChat = !evt.getMessage().equals(chat);
 		if(nautyChat) pl.getLogger().info("Unfiltered Chat: "+String.format(evt.getFormat(), pName, chat));
 
@@ -269,19 +270,19 @@ class AsyncChatListener implements Listener{
 		if(HANDLE_COLORS && evt.getPlayer().hasPermission("chatmanager.color")){
 			chat = ChatUtils.determineColorsByPermission(chat, evt.getPlayer());
 		}
-		chat = chat.trim();
 
 		//-------------------------------------------------------------------------
 		final boolean canShareItem = DISPLAY_ITEMS && evt.getPlayer().hasPermission("chatmanager.displayitems");
 		boolean hasSharedItem = false;
 		if(canShareItem){
-			chat = chat.replaceAll(DI_FULL_ESCAPE_PAT, DI_FULL_ESCAPE_REPL);//[ii] -> [i], [iii] -> [ii]
 			hasSharedItem = chat.matches(".*?"+DI_FULL_PAT+".*?");
+			if(!hasSharedItem) chat = chat.replaceAll(DI_FULL_ESCAPE_PAT, DI_FULL_ESCAPE_REPL);//[ii] -> [i], [iii] -> [ii]
 		}
 		if(evt.getMessage().equals(chat) == false) evt.setMessage(chat);
 
 		//-------------------------------------------------------------------------
 		if(USE_DISPLAY_NAMES || USE_TEAM_COLORS || hasSharedItem){
+			pl.getLogger().info("has shared item: "+hasSharedItem);
 			String prefix = "", suffix = "";
 			if(USE_TEAM_COLORS){
 				final Scoreboard scoreboard = USE_MAIN_SCOREBOARD
@@ -332,16 +333,23 @@ class AsyncChatListener implements Listener{
 					}
 				}
 			}
-			final String compStr = comp.toString();
-			final String plainText = comp.toPlainText();
+			String compStr = comp.toString();
+			String plainText = comp.toPlainText();
+			if(hasSharedItem){
+				compStr = compStr.replaceAll(DI_FULL_ESCAPE_PAT, DI_FULL_ESCAPE_REPL);//[ii] -> [i], [iii] -> [ii]
+				plainText = plainText.replaceAll(DI_FULL_ESCAPE_PAT, DI_FULL_ESCAPE_REPL);//[ii] -> [i], [iii] -> [ii]
+			}
+			final String finalCompStr = compStr;
+			final String finalPlainText = plainText;
 			new BukkitRunnable(){@Override public void run(){
 				// TODO: handle evt.getRecipients()
 				if(evt.getRecipients().size() != pl.getServer().getOnlinePlayers().size()){
 					pl.getServer().getLogger().warning("Sending DisplayItem chat to @a, ignoring getRecipients()");
 				}
-				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+compStr);
-				if(LOG_CHATS) pl.getServer().getLogger().info(plainText);
+				pl.getServer().dispatchCommand(pl.getServer().getConsoleSender(), "minecraft:tellraw @a "+finalCompStr);
+				if(LOG_CHATS) pl.getServer().getLogger().info(finalPlainText);
 			}}.runTask(pl);
+
 			if(SEND_FAKE_EVT_TO_PLUGINS){
 				final String hackyMsgWithoutName = plainText.substring(plainText.indexOf(' ')+1);
 				AsyncPlayerChatEvent newEvt = new AsyncPlayerChatEvent(/*async=*/true, evt.getPlayer(), hackyMsgWithoutName, evt.getRecipients());
