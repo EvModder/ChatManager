@@ -27,7 +27,7 @@ import net.evmodder.EvLib.extras.TextUtils;
 
 public class CommandColor extends EvCommand{
 	private final ChatManager pl;
-	private final boolean SET_NICKNAME, SET_DISPLAYNAME = true, SET_TAG = true;
+	private final boolean SET_NICKNAME, COLOR_TAB_LIST, SET_DISPLAYNAME = true, SET_TAG = true;
 	private final String COLOR_TAG = "color_nick", COLOR_TAG_ = COLOR_TAG+"_";
 	private final boolean HEX_AVAILABLE;
 	private final int NUM_RDM_COLORS_SHOWN = 15;
@@ -39,6 +39,7 @@ public class CommandColor extends EvCommand{
 		this.pl=pl;
 		rand = new Random();
 		SET_NICKNAME = pl.getConfig().getBoolean("set-nickname-when-setting-color", false);
+		COLOR_TAB_LIST = pl.getConfig().getBoolean("use-colors-in-player-list", true);
 
 		if(SET_TAG && SET_DISPLAYNAME){
 			pl.getServer().getPluginManager().registerEvents(new Listener(){
@@ -46,7 +47,9 @@ public class CommandColor extends EvCommand{
 					if(evt.getPlayer().getScoreboardTags().contains(COLOR_TAG)){
 						for(String tag : evt.getPlayer().getScoreboardTags()){
 							if(tag.startsWith(COLOR_TAG_)){
-								evt.getPlayer().setDisplayName(TextUtils.translateAlternateColorCodes('.', tag.substring(COLOR_TAG_.length())));
+								final String coloredName = TextUtils.translateAlternateColorCodes('.', tag.substring(COLOR_TAG_.length()));
+								evt.getPlayer().setDisplayName(coloredName);
+								if(COLOR_TAB_LIST) evt.getPlayer().setPlayerListName(coloredName);
 								break;
 							}
 						}
@@ -75,6 +78,7 @@ public class CommandColor extends EvCommand{
 	private void setColoredName(Player player, String coloredName){
 		if(SET_DISPLAYNAME) player.setDisplayName(TextUtils.translateAlternateColorCodes('&', coloredName));
 		// Whack: setDisplayName("&5Test") -> "&5Test&5, setDisplayName("&5Te&2st") -> "&5Te&2st&2
+		if(COLOR_TAB_LIST) player.setPlayerListName(coloredName);
 		if(SET_NICKNAME) runCommand("nick "+player.getName()+" "+coloredName);
 		if(SET_TAG){
 			player.getScoreboardTags().removeIf(tag -> tag.startsWith(COLOR_TAG_));
