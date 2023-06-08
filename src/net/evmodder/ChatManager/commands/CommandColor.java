@@ -6,6 +6,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +30,7 @@ import net.evmodder.EvLib.extras.TextUtils;
 
 public class CommandColor extends EvCommand{
 	private final ChatManager pl;
-	private final boolean SET_NICKNAME, COLOR_TAB_LIST, SET_DISPLAYNAME = true, SET_TAG = true;
+	private final boolean SET_NICKNAME, COLOR_TAB_LIST, COLOR_TEAM_NAME, SET_DISPLAYNAME = true, SET_TAG = true;
 	private final String COLOR_TAG = "color_nick", COLOR_TAG_ = COLOR_TAG+"_";
 	private final boolean HEX_AVAILABLE;
 	private final int NUM_RDM_COLORS_SHOWN = 15;
@@ -40,20 +43,29 @@ public class CommandColor extends EvCommand{
 		rand = new Random();
 		SET_NICKNAME = pl.getConfig().getBoolean("set-nickname-when-setting-color", false);
 		COLOR_TAB_LIST = pl.getConfig().getBoolean("use-colors-in-player-list", true);
+		COLOR_TEAM_NAME = pl.getConfig().getBoolean("use-teams-for-name-colors", false);
 
-		if(SET_TAG && SET_DISPLAYNAME){
+		if(SET_TAG && (COLOR_TEAM_NAME || SET_DISPLAYNAME)){
 			pl.getServer().getPluginManager().registerEvents(new Listener(){
 				@EventHandler public void onPlayerJoin(PlayerJoinEvent evt){
 					if(evt.getPlayer().getScoreboardTags().contains(COLOR_TAG)){
 						for(String tag : evt.getPlayer().getScoreboardTags()){
 							if(tag.startsWith(COLOR_TAG_)){
 								final String coloredName = TextUtils.translateAlternateColorCodes('.', tag.substring(COLOR_TAG_.length()));
-								evt.getPlayer().setDisplayName(coloredName);
-								if(COLOR_TAB_LIST) evt.getPlayer().setPlayerListName(coloredName);
+								if(SET_DISPLAYNAME) evt.getPlayer().setDisplayName(coloredName);
+								if(COLOR_TEAM_NAME) makeColorTeam(evt.getPlayer(), /*prefix=*/TextUtils.getCurrentColorAndFormats(coloredName));
 								break;
 							}
 						}
 					}
+				}
+			}, pl);
+		}
+		if(COLOR_TEAM_NAME){
+			pl.getServer().getPluginManager().registerEvents(new Listener(){
+				@EventHandler public void onPlayerQuit(PlayerQuitEvent evt){
+					Team team = pl.getServer().getScoreboardManager().getMainScoreboard().getTeam("color_"+evt.getPlayer().getName());
+					if(team != null) team.unregister();
 				}
 			}, pl);
 		}
@@ -75,6 +87,13 @@ public class CommandColor extends EvCommand{
 			.toString();
 	}
 
+	private void makeColorTeam(Player player, String prefix){
+		Scoreboard sb = pl.getServer().getScoreboardManager().getMainScoreboard();
+		Team team = sb.getTeam("color_"+player.getName());
+		if(team == null) team = sb.registerNewTeam("color_"+player.getName());
+		team.addEntry(player.getName());
+		team.setPrefix(prefix);
+	}
 	private void setColoredName(Player player, String coloredName){
 		if(SET_DISPLAYNAME) player.setDisplayName(TextUtils.translateAlternateColorCodes('&', coloredName));
 		// Whack: setDisplayName("&5Test") -> "&5Test&5, setDisplayName("&5Te&2st") -> "&5Te&2st&2
@@ -85,6 +104,7 @@ public class CommandColor extends EvCommand{
 			player.addScoreboardTag(COLOR_TAG);
 			player.addScoreboardTag(COLOR_TAG_+coloredName.replace('&', '.'));
 		}
+		if(COLOR_TEAM_NAME) makeColorTeam(player, /*prefix=*/TextUtils.getCurrentColorAndFormats(coloredName));
 	}
 	private String getCurrentColorRender(Player player){
 		String coloredName = null;

@@ -13,6 +13,9 @@ import net.evmodder.EvLib.Updater;
 //TODO: sign colors actually working
 //TODO: Discord integration
 //TODO: multiple-account spam detection
+//TODO: /ignore <who/@a> [deaths/kills/beheads/chats/advancements/logins]
+//(Seen only by t sender) <EvDoc> hi guys what's up? (-1)    // <-- hover comp on (-1) showing players that didn't receive the msg
+//(Seen by everyone else) <EvDoc> hi guys what's up?
 //TEST: Merge with DisplayItem
 public final class ChatManager extends EvPlugin{
 	ProfanityFilter profanityFilter;

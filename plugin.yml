@@ -26,6 +26,12 @@ commands:
     permission: chatmanager.command.color
     permission-message: You do not have permission to do this.
 
+  ignore:
+    description: Hide player chat messages
+    usage: /ignore <who/@a>
+    aliases: [togglechat]
+    permission: chatmanager.command.ignore
+
 permissions:
   chatmanager.command:
     description: Allows access to the /chatmanager command
@@ -133,4 +139,25 @@ permissions:
 
   chatmanager.command.color.formats:
     description: Permission to use formats in /color
+    default: op
+
+  chatmanager.command.ignore:
+    description: Permission to use /ignore
+    default: true
+
+  chatmanager.command.ignore.all:
+    description: Permission to use /ignore @a
+    default: op
+
+  chatmanager.command.ignore.player:
+    description: Permission to use /ignore <name>
+    default: op
+
+  # ignores all messages from a player, deaths/advancements/etc
+  chatmanager.command.ignore.player.all:
+    description: Permission to use /ignore <name> all
+    default: op
+
+  chatmanager.command.ignore.player.deaths:
+    description: Permission to use /ignore <name> deaths
     default: op
