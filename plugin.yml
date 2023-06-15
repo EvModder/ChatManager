@@ -4,9 +4,9 @@ author: EvModder
 website: https://github.com/EvModder/ChatManager
 description: Chat control and formatting features.
 #2=major rewrite, EvLib, DisplayItem
-#1=DisplayItem amount, /color, name click -> suggest /tell
-#1=fix printing chat in console, updated config.yml format
-version: 2.1.1
+#2=Support for teams, updated /color
+#0=
+version: 2.2.0
 softdepend: [Vault]
 api-version: 1.13
 
@@ -14,7 +14,7 @@ commands:
   chatm:
     description: Commands for ChatManager.
     usage: Do /chatm help for ChatManager commands
-    aliases: [chat,evcm,chatmanager,chat-manager,cm,evchatmanager]
+    aliases: [chat,evcm,chatmanager,cm]
     permission: chatmanager.command
     permission-message: You do not have permission for this command.
 
@@ -25,6 +25,12 @@ commands:
     #,namecolor,namecolour,cnick,cl,format]
     permission: chatmanager.command.color
     permission-message: You do not have permission to do this.
+
+  ignore:
+    description: Hide player chat messages
+    usage: /ignore <who/@a>
+    aliases: [togglechat]
+    permission: chatmanager.command.ignore
 
 permissions:
   chatmanager.command:
@@ -133,4 +139,25 @@ permissions:
 
   chatmanager.command.color.formats:
     description: Permission to use formats in /color
+    default: op
+
+  chatmanager.command.ignore:
+    description: Permission to use /ignore
+    default: true
+
+  chatmanager.command.ignore.all:
+    description: Permission to use /ignore @a
+    default: op
+
+  chatmanager.command.ignore.player:
+    description: Permission to use /ignore <name>
+    default: op
+
+  # ignores all messages from a player, deaths/advancements/etc
+  chatmanager.command.ignore.player.all:
+    description: Permission to use /ignore <name> all
+    default: op
+
+  chatmanager.command.ignore.player.deaths:
+    description: Permission to use /ignore <name> deaths
     default: op

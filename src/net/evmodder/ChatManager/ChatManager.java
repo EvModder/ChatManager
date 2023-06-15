@@ -3,7 +3,6 @@ package net.evmodder.ChatManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import net.evmodder.ChatManager.commands.CommandColor;
 import net.evmodder.EvLib.EvPlugin;
@@ -14,8 +13,11 @@ import net.evmodder.EvLib.Updater;
 //TODO: sign colors actually working
 //TODO: Discord integration
 //TODO: multiple-account spam detection
+//TODO: /ignore <who/@a> [deaths/kills/beheads/chats/advancements/logins]
+//(Seen only by t sender) <EvDoc> hi guys what's up? (-1)    // <-- hover comp on (-1) showing players that didn't receive the msg
+//(Seen by everyone else) <EvDoc> hi guys what's up?
 //TEST: Merge with DisplayItem
-public final class ChatManager extends EvPlugin implements Listener{
+public final class ChatManager extends EvPlugin{
 	ProfanityFilter profanityFilter;
 
 	@Override public void onEvEnable(){
@@ -34,6 +36,8 @@ public final class ChatManager extends EvPlugin implements Listener{
 		getServer().getPluginManager().registerEvents(new AsyncChatListener(this), this);
 		getServer().getPluginManager().registerEvents(new CommandPreprocessListener(this), this);
 		getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
+		//1.19.1+
+//		getServer().getPluginManager().registerEvents(new ServerPingListener(this), this);
 	}
 
 	//TODO: actually have working commands
