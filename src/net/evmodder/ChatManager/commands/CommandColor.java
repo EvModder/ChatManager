@@ -52,6 +52,7 @@ public class CommandColor extends EvCommand{
 						for(String tag : evt.getPlayer().getScoreboardTags()){
 							if(tag.startsWith(COLOR_TAG_)){
 								final String coloredName = TextUtils.translateAlternateColorCodes('.', tag.substring(COLOR_TAG_.length()));
+								if(COLOR_TAB_LIST) evt.getPlayer().setPlayerListName(coloredName);
 								if(SET_DISPLAYNAME) evt.getPlayer().setDisplayName(coloredName);
 								if(COLOR_TEAM_NAME) makeColorTeam(evt.getPlayer(), /*prefix=*/TextUtils.getCurrentColorAndFormats(coloredName));
 								break;
