@@ -282,7 +282,7 @@ class AsyncChatListener implements Listener{
 
 		//-------------------------------------------------------------------------
 		if(USE_DISPLAY_NAMES || USE_TEAM_COLORS || hasSharedItem){
-			pl.getLogger().info("has shared item: "+hasSharedItem);
+			//pl.getLogger().info("has shared item: "+hasSharedItem);
 			String prefix = "", suffix = "";
 			if(USE_TEAM_COLORS){
 				final Scoreboard scoreboard = USE_MAIN_SCOREBOARD
@@ -350,7 +350,7 @@ class AsyncChatListener implements Listener{
 				if(LOG_CHATS) pl.getServer().getLogger().info(finalPlainText);
 			}}.runTask(pl);
 
-			if(SEND_FAKE_EVT_TO_PLUGINS){
+			if(SEND_FAKE_EVT_TO_PLUGINS){ // Helps with compatibility
 				final String hackyMsgWithoutName = plainText.substring(plainText.indexOf(' ')+1);
 				AsyncPlayerChatEvent newEvt = new AsyncPlayerChatEvent(/*async=*/true, evt.getPlayer(), hackyMsgWithoutName, evt.getRecipients());
 				synchronized(fakeChatEvents){fakeChatEvents.add(newEvt);}
