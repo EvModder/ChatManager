@@ -33,7 +33,6 @@ import net.evmodder.EvLib.extras.TellrawUtils.TextHoverAction;
 import net.evmodder.EvLib.extras.TellrawUtils.TranslationComponent;
 import net.evmodder.EvLib.extras.TellrawUtils;
 import net.evmodder.EvLib.extras.TextUtils;
-import net.evmodder.EvLib.extras.TypeUtils;
 import net.evmodder.EvLib.extras.NBTTagUtils;
 import net.evmodder.EvLib.extras.NBTTagUtils.RefNBTTagCompound;
 
@@ -136,7 +135,7 @@ class AsyncChatListener implements Listener{
 	Component getItemComponent(ItemStack item){
 		//TODO: Config option for shulker boxes, show first 6 or entire contents?
 		TextHoverAction hoverAction = new TextHoverAction(HoverEvent.SHOW_ITEM, JunkUtils.convertItemStackToJson(item, JSON_LIMIT));
-		String rarityColor = TypeUtils.getRarityColor(item).name().toLowerCase();
+		String rarityColor = TextUtils.getRarityColor(item).name().toLowerCase();
 		if(rarityColor.equals("white")) rarityColor = DEFAULT_ITEM_DISPLAY_COLOR;
 		if(item.hasItemMeta() && item.getItemMeta().hasDisplayName()){
 			ListComponent parentPropertiesComp = new ListComponent(new RawTextComponent(
