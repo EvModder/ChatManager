@@ -294,7 +294,7 @@ class AsyncChatListener implements Listener{
 				}
 			}
 			final String chatName = prefix+(USE_DISPLAY_NAMES ? evt.getPlayer().getDisplayName()
-					+(TextUtils.getCurrentColorAndFormats(evt.getPlayer().getDisplayName()).isEmpty() ? "" : ChatColor.RESET) : pName)+suffix;
+					+(ChatColor.getLastColors(evt.getPlayer().getDisplayName()).isEmpty() ? "" : ChatColor.RESET) : pName)+suffix;
 			final String chatNamePlaceholder = "<<<"+pName+">>>";
 			// The fully-formed chat message
 			chat = String.format(evt.getFormat(), chatNamePlaceholder, chat);
@@ -303,7 +303,7 @@ class AsyncChatListener implements Listener{
 
 			final String selectorHoverText = pName+"\nType: Player\n"+evt.getPlayer().getUniqueId();
 			final String selectorClickSuggestText = "/tell "+pName+" ";
-			comp.replaceRawDisplayTextWithComponent(chatNamePlaceholder, new ListComponent(
+			comp.replaceRawTextWithComponent(chatNamePlaceholder, new ListComponent(
 					new RawTextComponent(
 						/*text=*/"", /*insert=*/null,
 						new TextClickAction(ClickEvent.SUGGEST_COMMAND, selectorClickSuggestText),
@@ -318,17 +318,17 @@ class AsyncChatListener implements Listener{
 			if(hasSharedItem){
 				if(chat.contains(DI_FULL_MAINHAND)){
 					ItemStack hand = evt.getPlayer().getInventory().getItemInMainHand();
-					comp.replaceRawDisplayTextWithComponent(DI_FULL_MAINHAND, getItemComponentWithAmount(hand));
+					comp.replaceRawTextWithComponent(DI_FULL_MAINHAND, getItemComponentWithAmount(hand));
 				}
 				if(chat.contains(DI_FULL_OFFHAND)){
 					ItemStack hand = evt.getPlayer().getInventory().getItemInOffHand();
-					comp.replaceRawDisplayTextWithComponent(DI_FULL_OFFHAND, getItemComponentWithAmount(hand));
+					comp.replaceRawTextWithComponent(DI_FULL_OFFHAND, getItemComponentWithAmount(hand));
 				}
 				for(int i=1; i<=9; ++i){
 					if(chat.contains(DI_PREFIX+i+DI_SUFFIX)){
 						ItemStack item = evt.getPlayer().getInventory().getItem(i-1);
 						if(item == null) item = new ItemStack(Material.AIR);
-						comp.replaceRawDisplayTextWithComponent(DI_PREFIX+i+DI_SUFFIX, getItemComponentWithAmount(item));
+						comp.replaceRawTextWithComponent(DI_PREFIX+i+DI_SUFFIX, getItemComponentWithAmount(item));
 					}
 				}
 			}

@@ -54,7 +54,7 @@ public class CommandColor extends EvCommand{
 								final String coloredName = TextUtils.translateAlternateColorCodes('.', tag.substring(COLOR_TAG_.length()));
 								if(COLOR_TAB_LIST) evt.getPlayer().setPlayerListName(coloredName);
 								if(SET_DISPLAYNAME) evt.getPlayer().setDisplayName(coloredName);
-								if(COLOR_TEAM_NAME) makeColorTeam(evt.getPlayer(), /*prefix=*/TextUtils.getCurrentColorAndFormats(coloredName));
+								if(COLOR_TEAM_NAME) makeColorTeam(evt.getPlayer(), /*prefix=*/ChatColor.getLastColors(coloredName));
 								break;
 							}
 						}
@@ -105,7 +105,7 @@ public class CommandColor extends EvCommand{
 			player.addScoreboardTag(COLOR_TAG);
 			player.addScoreboardTag(COLOR_TAG_+coloredName.replace('&', '.'));
 		}
-		if(COLOR_TEAM_NAME) makeColorTeam(player, /*prefix=*/TextUtils.getCurrentColorAndFormats(coloredName));
+		if(COLOR_TEAM_NAME) makeColorTeam(player, /*prefix=*/ChatColor.getLastColors(coloredName));
 	}
 	private String getCurrentColorRender(Player player){
 		String coloredName = null;
