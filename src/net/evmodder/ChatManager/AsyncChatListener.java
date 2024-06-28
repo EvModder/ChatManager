@@ -10,7 +10,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
@@ -34,7 +36,11 @@ import net.evmodder.EvLib.extras.TellrawUtils.TranslationComponent;
 import net.evmodder.EvLib.extras.TellrawUtils;
 import net.evmodder.EvLib.extras.TextUtils;
 import net.evmodder.EvLib.extras.NBTTagUtils;
+import net.evmodder.EvLib.extras.ReflectionUtils;
 import net.evmodder.EvLib.extras.NBTTagUtils.RefNBTTagCompound;
+import net.evmodder.EvLib.extras.ReflectionUtils.RefClass;
+import net.evmodder.EvLib.extras.ReflectionUtils.RefField;
+import net.evmodder.EvLib.extras.ReflectionUtils.RefMethod;
 
 class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
@@ -125,11 +131,37 @@ class AsyncChatListener implements Listener{
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent evt){lastChats.remove(evt.getPlayer().getUniqueId());}
 
-	public final static String getDisplayName(ItemStack item){
-		RefNBTTagCompound tag = NBTTagUtils.getTag(item);
-		RefNBTTagCompound display = tag.hasKey("display") ? (RefNBTTagCompound)tag.get("display") : new RefNBTTagCompound();
-		return display.hasKey("Name") ? display.getString("Name") : null;
-//		return TellrawUtils.parseComponentFromString(display.getString("Name"));
+	private final static RefField displayNameField = ReflectionUtils.getRefClass("{cb}.inventory.CraftMetaItem").getField("displayName");
+	private final static RefMethod toJsonMethod;
+	private final static Object registryAccessObj;//class: IRegistryCustom.Dimension
+	static{
+		if(ReflectionUtils.getServerVersionString().compareTo("v1_20_5") >= 0){
+			final RefClass iChatBaseComponentClass = ReflectionUtils.getRefClass("{nm}.network.chat.IChatBaseComponent");
+			final RefClass chatSerializerClass = ReflectionUtils.getRefClass("{nm}.network.chat.IChatBaseComponent$ChatSerializer");
+			final RefClass holderLookupProviderClass = ReflectionUtils.getRefClass("{nm}.core.HolderLookup$Provider", "{nm}.core.HolderLookup$a");
+			toJsonMethod = chatSerializerClass.findMethod(/*isStatic=*/true, String.class, iChatBaseComponentClass, holderLookupProviderClass);
+
+			final Object nmsServerObj = ReflectionUtils.getRefClass("{cb}.CraftServer").getMethod("getServer").of(Bukkit.getServer()).call();
+			registryAccessObj = ReflectionUtils.getRefClass("{nm}.server.MinecraftServer").findMethod(/*isStatic=*/false,
+					ReflectionUtils.getRefClass("net.minecraft.core.IRegistryCustom$Dimension")).of(nmsServerObj).call();
+		}
+		else registryAccessObj = toJsonMethod = null;
+	}
+	public final static String getDisplayName(@Nonnull ItemStack item){
+		if(toJsonMethod != null){
+			if(!item.hasItemMeta()) return null;
+			try{return (String)toJsonMethod.call(displayNameField.of(item.getItemMeta()).get(), registryAccessObj);}
+			catch(RuntimeException ex){
+				//Caused by: java.lang.reflect.InvocationTargetException
+				//Caused by: java.lang.NullPointerException: Cannot invoke "net.minecraft.network.chat.Component.tryCollapseToString()" because "text" is null
+				return null;
+			}
+		}
+		else{
+			RefNBTTagCompound tag = NBTTagUtils.getTag(item);
+			RefNBTTagCompound display = tag.hasKey("display") ? (RefNBTTagCompound)tag.get("display") : new RefNBTTagCompound();
+			return display.hasKey("Name") ? display.getString("Name") : null;
+		}
 	}
 
 	Component getItemComponent(ItemStack item){

@@ -5,8 +5,8 @@ website: https://github.com/EvModder/ChatManager
 description: Chat control and formatting features.
 #2=major rewrite, EvLib, DisplayItem
 #2=Support for teams, updated /color
-#0=
-version: 2.2.0
+#1=fixes for 1.20.5+ on Bukkit/Spigot
+version: 2.2.1
 softdepend: [Vault]
 api-version: 1.13
 
