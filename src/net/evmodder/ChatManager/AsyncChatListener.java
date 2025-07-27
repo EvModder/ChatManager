@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -147,7 +146,7 @@ class AsyncChatListener implements Listener{
 		}
 		else registryAccessObj = toJsonMethod = null;
 	}
-	public final static String getDisplayName(@Nonnull ItemStack item){
+	public final static String getDisplayName(ItemStack item){
 		if(toJsonMethod != null){
 			if(!item.hasItemMeta()) return null;
 			try{return (String)toJsonMethod.call(displayNameField.of(item.getItemMeta()).get(), registryAccessObj);}
