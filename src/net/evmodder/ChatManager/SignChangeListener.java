@@ -3,7 +3,7 @@ package net.evmodder.ChatManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
-import net.evmodder.EvLib.extras.TextUtils;
+import net.evmodder.EvLib.TextUtils;
 
 class SignChangeListener implements Listener{
 	final ProfanityFilter chatFilter;

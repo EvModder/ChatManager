@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,23 +24,23 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import net.evmodder.EvLib.extras.TellrawUtils.ClickEvent;
-import net.evmodder.EvLib.extras.TellrawUtils.Component;
-import net.evmodder.EvLib.extras.TellrawUtils.Format;
-import net.evmodder.EvLib.extras.TellrawUtils.HoverEvent;
-import net.evmodder.EvLib.extras.TellrawUtils.ListComponent;
-import net.evmodder.EvLib.extras.TellrawUtils.RawTextComponent;
-import net.evmodder.EvLib.extras.TellrawUtils.TextClickAction;
-import net.evmodder.EvLib.extras.TellrawUtils.TextHoverAction;
-import net.evmodder.EvLib.extras.TellrawUtils.TranslationComponent;
-import net.evmodder.EvLib.extras.TellrawUtils;
-import net.evmodder.EvLib.extras.TextUtils;
-import net.evmodder.EvLib.extras.NBTTagUtils;
-import net.evmodder.EvLib.extras.ReflectionUtils;
-import net.evmodder.EvLib.extras.NBTTagUtils.RefNBTTagCompound;
-import net.evmodder.EvLib.extras.ReflectionUtils.RefClass;
-import net.evmodder.EvLib.extras.ReflectionUtils.RefField;
-import net.evmodder.EvLib.extras.ReflectionUtils.RefMethod;
+import net.evmodder.EvLib.bukkit.TellrawUtils.ClickEvent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.Component;
+import net.evmodder.EvLib.bukkit.TellrawUtils.Format;
+import net.evmodder.EvLib.bukkit.TellrawUtils.HoverEvent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.ListComponent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.RawTextComponent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.TextClickAction;
+import net.evmodder.EvLib.bukkit.TellrawUtils.TextHoverAction;
+import net.evmodder.EvLib.bukkit.TellrawUtils.TranslationComponent;
+import net.evmodder.EvLib.bukkit.TellrawUtils;
+import net.evmodder.EvLib.TextUtils;
+import net.evmodder.EvLib.bukkit.NBTTagUtils;
+import net.evmodder.EvLib.bukkit.ReflectionUtils;
+import net.evmodder.EvLib.bukkit.NBTTagUtils.RefNBTTagCompound;
+import net.evmodder.EvLib.bukkit.ReflectionUtils.RefClass;
+import net.evmodder.EvLib.bukkit.ReflectionUtils.RefField;
+import net.evmodder.EvLib.bukkit.ReflectionUtils.RefMethod;
 
 class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
@@ -146,7 +147,7 @@ class AsyncChatListener implements Listener{
 		}
 		else registryAccessObj = toJsonMethod = null;
 	}
-	public final static String getDisplayName(ItemStack item){
+	public final static String getDisplayName(@Nonnull ItemStack item){
 		if(toJsonMethod != null){
 			if(!item.hasItemMeta()) return null;
 			try{return (String)toJsonMethod.call(displayNameField.of(item.getItemMeta()).get(), registryAccessObj);}

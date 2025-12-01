@@ -8,11 +8,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import net.evmodder.EvLib.FileIO;
-import net.evmodder.EvLib.extras.ReflectionUtils;
-import net.evmodder.EvLib.extras.ReflectionUtils.RefClass;
-import net.evmodder.EvLib.extras.ReflectionUtils.RefMethod;
+import net.evmodder.EvLib.bukkit.ReflectionUtils;
+import net.evmodder.EvLib.bukkit.ReflectionUtils.RefClass;
+import net.evmodder.EvLib.bukkit.ReflectionUtils.RefMethod;
 
 public class JunkUtils{
 	// ItemStack methods to get a net.minecraft.server.ItemStack object for serialization
@@ -33,13 +34,15 @@ public class JunkUtils{
 	 * @return the JSON string representation of the item
 	 */
 	public final static String convertItemStackToJson(ItemStack item, int JSON_LIMIT){
+		Material type = item.getType();
+		String id = type.isRegistered() ? type.getKeyOrThrow().getKey() : type.name().toLowerCase();
 		if(item.hasItemMeta()){
-			String jsonString = "{id:\""+item.getType().getKeyOrThrow().getKey()+"\",count:"+item.getAmount()+",components:"+item.getItemMeta().getAsString()+"}";
+			String jsonString = "{id:\""+id+"\",count:"+item.getAmount()+",components:"+item.getItemMeta().getAsString()+"}";
 			if(jsonString.length() <= JSON_LIMIT) return jsonString;
 			//TODO: Reduce item json data in a less destructive way
 			//reduceItemData() -> clear book pages, clear hidden NBT, call recursively for containers
 		}
-		return "{id:\""+item.getType().getKeyOrThrow().getKey()+"\",count:"+item.getAmount()+"}";
+		return "{id:\""+id+"\",count:"+item.getAmount()+"}";
 	}
 //	public final static String convertItemStackToJson(ItemStack item, int JSON_LIMIT){
 //		Object nmsNbtTagCompoundObj = nbtTagCompoundClazz.getConstructor().create();

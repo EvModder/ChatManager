@@ -5,8 +5,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import net.evmodder.ChatManager.commands.CommandColor;
-import net.evmodder.EvLib.EvPlugin;
-import net.evmodder.EvLib.Updater;
+import net.evmodder.EvLib.bukkit.EvPlugin;
+import net.evmodder.EvLib.bukkit.Updater;
 
 //TODO: (ChatManager) [-] -> *, no filter for self chat, toggle filtering with tag
 //TODO: Chat prefixes

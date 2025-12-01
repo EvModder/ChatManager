@@ -17,16 +17,16 @@ import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import net.evmodder.ChatManager.ChatManager;
-import net.evmodder.EvLib.EvCommand;
-import net.evmodder.EvLib.extras.ReflectionUtils;
-import net.evmodder.EvLib.extras.TellrawUtils.ClickEvent;
-import net.evmodder.EvLib.extras.TellrawUtils.Format;
-import net.evmodder.EvLib.extras.TellrawUtils.HoverEvent;
-import net.evmodder.EvLib.extras.TellrawUtils.ListComponent;
-import net.evmodder.EvLib.extras.TellrawUtils.RawTextComponent;
-import net.evmodder.EvLib.extras.TellrawUtils.TextClickAction;
-import net.evmodder.EvLib.extras.TellrawUtils.TextHoverAction;
-import net.evmodder.EvLib.extras.TextUtils;
+import net.evmodder.EvLib.bukkit.EvCommand;
+import net.evmodder.EvLib.bukkit.ReflectionUtils;
+import net.evmodder.EvLib.bukkit.TellrawUtils.ClickEvent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.Format;
+import net.evmodder.EvLib.bukkit.TellrawUtils.HoverEvent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.ListComponent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.RawTextComponent;
+import net.evmodder.EvLib.bukkit.TellrawUtils.TextClickAction;
+import net.evmodder.EvLib.bukkit.TellrawUtils.TextHoverAction;
+import net.evmodder.EvLib.TextUtils;
 
 public class CommandColor extends EvCommand{
 	private final ChatManager pl;
