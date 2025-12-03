@@ -1,5 +1,7 @@
 package net.evmodder.ChatManager;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,11 +38,8 @@ import net.evmodder.EvLib.bukkit.TellrawUtils.TranslationComponent;
 import net.evmodder.EvLib.bukkit.TellrawUtils;
 import net.evmodder.EvLib.TextUtils;
 import net.evmodder.EvLib.bukkit.NBTTagUtils;
-import net.evmodder.EvLib.bukkit.ReflectionUtils;
+import net.evmodder.EvLib.util.ReflectionUtils;
 import net.evmodder.EvLib.bukkit.NBTTagUtils.RefNBTTagCompound;
-import net.evmodder.EvLib.bukkit.ReflectionUtils.RefClass;
-import net.evmodder.EvLib.bukkit.ReflectionUtils.RefField;
-import net.evmodder.EvLib.bukkit.ReflectionUtils.RefMethod;
 
 class AsyncChatListener implements Listener{
 	final ProfanityFilter chatFilter;
@@ -131,26 +130,37 @@ class AsyncChatListener implements Listener{
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent evt){lastChats.remove(evt.getPlayer().getUniqueId());}
 
-	private final static RefField displayNameField = ReflectionUtils.getRefClass("{cb}.inventory.CraftMetaItem").getField("displayName");
-	private final static RefMethod toJsonMethod;
+	private final static Field displayNameField = ReflectionUtils.getField(ReflectionUtils.getClass("{cb}.inventory.CraftMetaItem"), "displayName");
+	private final static Method toStrMethod;
 	private final static Object registryAccessObj;//class: IRegistryCustom.Dimension
 	static{
 		if(ReflectionUtils.isAtLeastVersion("v1_20_5")){
-			final RefClass iChatBaseComponentClass = ReflectionUtils.getRefClass("{nm}.network.chat.IChatBaseComponent");
-			final RefClass chatSerializerClass = ReflectionUtils.getRefClass("{nm}.network.chat.IChatBaseComponent$ChatSerializer");
-			final RefClass holderLookupProviderClass = ReflectionUtils.getRefClass("{nm}.core.HolderLookup$Provider", "{nm}.core.HolderLookup$a");
-			toJsonMethod = chatSerializerClass.findMethod(/*isStatic=*/true, String.class, iChatBaseComponentClass, holderLookupProviderClass);
+			final Class<?> iChatBaseComponentClass = ReflectionUtils.getClass("{nm}.network.chat.IChatBaseComponent");
+			final Class<?> chatSerializerClass = ReflectionUtils.getClass("{nm}.network.chat.IChatBaseComponent$ChatSerializer");
+			final Class<?> holderLookupProviderClass = ReflectionUtils.getClass("{nm}.core.HolderLookup$Provider", "{nm}.core.HolderLookup$a");
+			toStrMethod = ReflectionUtils.findMethod(chatSerializerClass, /*isStatic=*/true, String.class, iChatBaseComponentClass, holderLookupProviderClass);
 
-			final Object nmsServerObj = ReflectionUtils.getRefClass("{cb}.CraftServer").getMethod("getServer").of(Bukkit.getServer()).call();
-			registryAccessObj = ReflectionUtils.getRefClass("{nm}.server.MinecraftServer").findMethod(/*isStatic=*/false,
-					ReflectionUtils.getRefClass("net.minecraft.core.IRegistryCustom$Dimension")).of(nmsServerObj).call();
+			Class<?> classCraftServer = ReflectionUtils.getClass("{cb}.CraftServer");
+			Method method_CraftServer_getServer = ReflectionUtils.getMethod(classCraftServer, "getServer");
+			final Object nmsServerObj = ReflectionUtils.call(method_CraftServer_getServer, Bukkit.getServer());
+//			registryAccessObj = ReflectionUtils.getClass("{nm}.server.MinecraftServer").findMethod(/*isStatic=*/false,
+//					ReflectionUtils.getClass("net.minecraft.core.IRegistryCustom$Dimension")).of(nmsServerObj).call();
+			Class<?> classMinecraftServer = ReflectionUtils.getClass("{nm}.server.MinecraftServer");
+			Method method_MinecraftServer_getRegistryAccess = ReflectionUtils.findMethod(
+					classMinecraftServer, /*isStatic=*/false, ReflectionUtils.getClass("net.minecraft.core.IRegistryCustom$Dimension"));
+			registryAccessObj = ReflectionUtils.call(method_MinecraftServer_getRegistryAccess, nmsServerObj);
 		}
-		else registryAccessObj = toJsonMethod = null;
+		else registryAccessObj = toStrMethod = null;
 	}
-	public final static String getDisplayName(@Nonnull ItemStack item){
-		if(toJsonMethod != null){
+	private static final String jsonStrFromChatComp(Object chatComp){
+		if(chatComp == null) return null;
+		if(ReflectionUtils.isAtLeastVersion("v1_21_6")) return (String)ReflectionUtils.callStatic(toStrMethod, chatComp);
+		else return (String)ReflectionUtils.callStatic(toStrMethod, chatComp, registryAccessObj);
+	}
+	public static final String getDisplayName(@Nonnull ItemStack item){
+		if(toStrMethod != null){
 			if(!item.hasItemMeta()) return null;
-			try{return (String)toJsonMethod.call(displayNameField.of(item.getItemMeta()).get(), registryAccessObj);}
+			try{return jsonStrFromChatComp(ReflectionUtils.get(displayNameField, item.getItemMeta()));}
 			catch(RuntimeException ex){
 				//Caused by: java.lang.reflect.InvocationTargetException
 				//Caused by: java.lang.NullPointerException: Cannot invoke "net.minecraft.network.chat.Component.tryCollapseToString()" because "text" is null

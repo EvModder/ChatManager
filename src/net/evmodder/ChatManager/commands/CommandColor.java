@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import net.evmodder.ChatManager.ChatManager;
 import net.evmodder.EvLib.bukkit.EvCommand;
-import net.evmodder.EvLib.bukkit.ReflectionUtils;
+import net.evmodder.EvLib.util.ReflectionUtils;
 import net.evmodder.EvLib.bukkit.TellrawUtils.ClickEvent;
 import net.evmodder.EvLib.bukkit.TellrawUtils.Format;
 import net.evmodder.EvLib.bukkit.TellrawUtils.HoverEvent;

@@ -8,17 +8,16 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import net.evmodder.EvLib.FileIO;
-import net.evmodder.EvLib.bukkit.ReflectionUtils;
-import net.evmodder.EvLib.bukkit.ReflectionUtils.RefClass;
-import net.evmodder.EvLib.bukkit.ReflectionUtils.RefMethod;
+import net.evmodder.EvLib.util.ReflectionUtils;
 
 public class JunkUtils{
 	// ItemStack methods to get a net.minecraft.server.ItemStack object for serialization
-	final static RefClass craftItemStackClazz = ReflectionUtils.getRefClass("{cb}.inventory.CraftItemStack");
-	final static RefMethod asNMSCopyMethod = craftItemStackClazz.getMethod("asNMSCopy", ItemStack.class);
+	final static Class<?> craftItemStackClazz = ReflectionUtils.getClass("{cb}.inventory.CraftItemStack");
+	final static Method asNMSCopyMethod = ReflectionUtils.getMethod(craftItemStackClazz, "asNMSCopy", ItemStack.class);
 
 //	// NMS Method to serialize a net.minecraft.server.vX_X.ItemStack to a valid JSON string
 //	final static RefClass nmsItemStackClazz = ReflectionUtils.getRefClass("{nms}.ItemStack", "{nm}.world.item.ItemStack");
