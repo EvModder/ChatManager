@@ -70,7 +70,7 @@ public class CommandColor extends EvCommand{
 				}
 			}, pl);
 		}
-		HEX_AVAILABLE = ReflectionUtils.getServerVersionString().compareTo("v1_16") >= 0;
+		HEX_AVAILABLE = ReflectionUtils.isAtLeastVersion("v1_16");
 	}
 
 	private void runCommand(final String cmd){
