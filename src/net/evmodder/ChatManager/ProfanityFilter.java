@@ -2,7 +2,7 @@ package net.evmodder.ChatManager;
 
 import java.util.HashMap;
 import org.apache.commons.lang3.StringUtils;
-import net.evmodder.EvLib.FileIO;
+import net.evmodder.EvLib.util.FileIO;
 
 public class ProfanityFilter{
 	// key=badword, value=replaceword, if value=null, replaces using default

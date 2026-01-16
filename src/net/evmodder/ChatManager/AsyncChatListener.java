@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -157,7 +156,7 @@ class AsyncChatListener implements Listener{
 		if(ReflectionUtils.isAtLeastVersion("v1_21_6")) return (String)ReflectionUtils.callStatic(toStrMethod, chatComp);
 		else return (String)ReflectionUtils.callStatic(toStrMethod, chatComp, registryAccessObj);
 	}
-	public static final String getDisplayName(@Nonnull ItemStack item){
+	public static final String getDisplayName(ItemStack item){
 		if(toStrMethod != null){
 			if(!item.hasItemMeta()) return null;
 			try{return jsonStrFromChatComp(ReflectionUtils.get(displayNameField, item.getItemMeta()));}
